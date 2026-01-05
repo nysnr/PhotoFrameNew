@@ -33,6 +33,9 @@ android/local.properties
 *.iml
 .idea/
 
+# Builds
+builds/
+
 # System
 .DS_Store
 Thumbs.db
