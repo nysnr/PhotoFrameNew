@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Production
+dist/
+web-build/
+
+# Expo
+.expo/
+.jsc/
+.npm/
+
+# Native - iOS
+ios/Pods/
+ios/build/
+ios/*.xcworkspace/xcuserdata/
+ios/.xcode.env.local
+ios/*.mode1v3
+ios/*.mode2v3
+ios/*.perspectivev3
+ios/DerivedData/
+*.moved-aside
+*.xccheckout
+*.xcscmblueprint
+
+# Native - Android
+android/.gradle/
+android/app/build/
+android/build/
+android/local.properties
+*.iml
+.idea/
+
+# System
+.DS_Store
+Thumbs.db
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
