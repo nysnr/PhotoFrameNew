@@ -93,7 +93,13 @@ const translations = {
     'lang.zh': 'Chinese',
     'lang.es': 'Spanish',
     'alert.selectPhotos.title': 'Select Photos',
-    'alert.selectPhotos.message': 'Select at least one photo before starting the slideshow.'
+    'alert.selectPhotos.message': 'Select at least one photo before starting the slideshow.',
+    'app.help': 'Help',
+    'help.about': 'About',
+    'help.usage': 'Usage Guide',
+    'help.usageContent': '1. Select photos from the list.\n2. Tap "Start Slideshow" button.\n3. Enjoy your photos!\n\nTap the screen during slideshow to see controls.',
+    'help.version': 'Version',
+    'help.contact': 'Contact'
   },
   ja: {
     Dark: 'ダーク',
@@ -160,7 +166,13 @@ const translations = {
     'lang.zh': '中国語',
     'lang.es': 'スペイン語',
     'alert.selectPhotos.title': '写真を選択してください',
-    'alert.selectPhotos.message': '最低1枚の写真を選択してからスライドショーを開始してください。'
+    'alert.selectPhotos.message': '最低1枚の写真を選択してからスライドショーを開始してください。',
+    'app.help': 'ヘルプ',
+    'help.about': 'アプリについて',
+    'help.usage': '使い方ガイド',
+    'help.usageContent': '1. 一覧から写真を選択します。\n2. 「スライドショー開始」ボタンをタップします。\n3. フォトフレームをお楽しみください！\n\nスライドショー中に画面をタップすると操作ボタンが表示されます。',
+    'help.version': 'バージョン',
+    'help.contact': 'お問い合わせ'
   },
   zh: {
     Dark: '深色',
@@ -227,7 +239,13 @@ const translations = {
     'lang.zh': '中文',
     'lang.es': '西班牙语',
     'alert.selectPhotos.title': '请选择照片',
-    'alert.selectPhotos.message': '开始幻灯片之前请至少选择一张照片。'
+    'alert.selectPhotos.message': '开始幻灯片之前请至少选择一张照片。',
+    'app.help': '帮助',
+    'help.about': '关于应用',
+    'help.usage': '使用指南',
+    'help.usageContent': '1. 从列表中选择照片。\n2. 点击“开始幻灯片”按钮。\n3. 尽情享受您的数码相框！\n\n幻灯片播放时点击屏幕可显示控制按钮。',
+    'help.version': '版本',
+    'help.contact': '联系方式'
   },
   es: {
     Dark: 'Oscuro',
@@ -294,7 +312,13 @@ const translations = {
     'lang.zh': 'Chino',
     'lang.es': 'Español',
     'alert.selectPhotos.title': 'Selecciona fotos',
-    'alert.selectPhotos.message': 'Selecciona al menos una foto antes de iniciar la presentación.'
+    'alert.selectPhotos.message': 'Selecciona al menos una foto antes de iniciar la presentación.',
+    'app.help': 'Ayuda',
+    'help.about': 'Acerca de',
+    'help.usage': 'Guía de uso',
+    'help.usageContent': '1. Selecciona fotos de la lista.\n2. Toca el botón "Iniciar presentación".\n3. ¡Disfruta de tu marco de fotos!\n\nToca la pantalla durante la presentación para ver los controles.',
+    'help.version': 'Versión',
+    'help.contact': 'Contacto'
   }
 };
 
@@ -330,6 +354,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [hasPermission, setHasPermission] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const [showSlideshow, setShowSlideshow] = useState(false);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [matteColor, setMatteColor] = useState('dark');
@@ -963,6 +988,53 @@ export default function App() {
     </Modal>
   );
 
+  // ヘルプ画面のレンダリング
+  const renderHelp = () => (
+    <Modal visible={showHelp} animationType="slide" supportedOrientations={['portrait','portrait-upside-down','landscape','landscape-left','landscape-right']}>
+      <LinearGradient
+        colors={matteGradients[matteColor]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={styles.settingsContainer}
+      >
+        <SafeAreaView style={styles.settingsContent}>
+          <View style={styles.settingsHeader}>
+            <Text style={styles.settingsTitle}>{t('app.help')}</Text>
+            <TouchableOpacity onPress={() => setShowHelp(false)}>
+              <Text style={styles.closeButton}>{t('app.close')}</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <ScrollView style={styles.settingsScroll}>
+            {/* 使い方ガイド */}
+            <View style={styles.settingSection}>
+              <Text style={styles.settingLabel}>{t('help.usage')}</Text>
+              <Text style={{ color: '#fff', fontSize: 16, lineHeight: 24, paddingHorizontal: 10 }}>
+                {t('help.usageContent')}
+              </Text>
+            </View>
+
+            {/* バージョン情報 */}
+            <View style={styles.settingSection}>
+              <Text style={styles.settingLabel}>{t('help.about')}</Text>
+              <View style={{ backgroundColor: 'rgba(255,255,255,0.1)', padding: 15, borderRadius: 10 }}>
+                <Text style={{ color: '#fff', fontSize: 16, marginBottom: 5 }}>
+                  {t('app.title')}
+                </Text>
+                <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14 }}>
+                  {t('help.version')}: 1.0.0 (Beta)
+                </Text>
+              </View>
+            </View>
+            
+            {/* Banner Ad - help screen */}
+            <AdBanner style={{ marginTop: 10 }} />
+          </ScrollView>
+        </SafeAreaView>
+      </LinearGradient>
+    </Modal>
+  );
+
   // 次のスライドに進む関数
   const nextSlide = () => {
     if (selectedPhotos.length > 1) {
@@ -1172,6 +1244,14 @@ export default function App() {
               <TouchableOpacity
                 style={styles.headerButton}
                 onPress={() => {
+                  setShowHelp(true);
+                }}
+              >
+                <Text style={styles.headerButtonText}>❓</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.headerButton}
+                onPress={() => {
                   setShowSettings(true);
                 }}
               >
@@ -1256,6 +1336,7 @@ export default function App() {
           <AdBanner />
           
           {renderSettings()}
+          {renderHelp()}
           {renderSlideshow()}
 
         </SafeAreaView>
