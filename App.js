@@ -348,7 +348,7 @@ const matteGradients = {
 };
 
 export default function App() {
-  const [currentLanguage, setCurrentLanguage] = useState('ja');
+  const [currentLanguage, setCurrentLanguage] = useState('en');
   const [photos, setPhotos] = useState([]);
   const [selectedPhotos, setSelectedPhotos] = useState([]);
   const [loading, setLoading] = useState(false);
