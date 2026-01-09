@@ -15,7 +15,8 @@ import {
   StatusBar,
   ScrollView,
   RefreshControl,
-  AppState
+  AppState,
+  Linking
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as MediaLibrary from 'expo-media-library';
@@ -98,15 +99,16 @@ const translations = {
     'app.help': 'Help',
     'help.about': 'About',
     'help.usage': 'Usage Guide',
-    'help.usageContent': '1. Select photos from the list.\n2. Tap "Start Slideshow" button.\n3. Enjoy your photos!\n\nTap the screen during slideshow to see controls.',
+    'help.usageContent': '1. Select photos from the list.\n2. Tap "Start Slideshow" button.\n3. Customize settings like interval and clock display in the Settings menu.\n4. Enjoy your photos!\n\nTap the screen during slideshow to see controls.',
     'help.version': 'Version',
     'help.contact': 'Contact',
     'help.legal': 'Legal',
     'help.privacyPolicy': 'Privacy Policy',
     'help.termsOfService': 'Terms of Service',
     'help.back': 'Back',
-    'help.privacyPolicyContent': 'We prioritize your privacy above all. This app operates entirely locally on your device to display your photos. Your photos are never uploaded to any server or shared with third parties.\n\nTo keep this app free, we use Google AdMob for advertising. AdMob may use anonymous identifiers to serve relevant ads. By using this app, you agree to this standard practice.\n\nView full policy online: https://nysnr.github.io/PhotoFrameNew/privacy.html',
-    'help.termsOfServiceContent': 'Thank you for using PhotoFrame. This app is provided "as is" to help you enjoy your photos. While we strive for perfection, the developer cannot be held liable for any issues arising from its use. Please use responsibly.\n\nView full terms online: https://nysnr.github.io/PhotoFrameNew/terms.html'
+    'help.viewOnline': 'View details online',
+    'help.privacyPolicyContent': 'We prioritize your privacy above all. This app operates entirely locally on your device to display your photos. Your photos are never uploaded to any server or shared with third parties.\n\nTo keep this app free, we use Google AdMob for advertising. AdMob may use anonymous identifiers to serve relevant ads. By using this app, you agree to this standard practice.',
+    'help.termsOfServiceContent': 'Thank you for using PhotoFrame. This app is provided "as is" to help you enjoy your photos. While we strive for perfection, the developer cannot be held liable for any issues arising from its use. Please use responsibly.'
   },
   ja: {
     Dark: 'ダーク',
@@ -177,15 +179,16 @@ const translations = {
     'app.help': 'ヘルプ',
     'help.about': 'アプリについて',
     'help.usage': '使い方ガイド',
-    'help.usageContent': '1. 一覧から写真を選択します。\n2. 「スライドショー開始」ボタンをタップします。\n3. フォトフレームをお楽しみください！\n\nスライドショー中に画面をタップすると操作ボタンが表示されます。',
+    'help.usageContent': '1. 一覧から写真を選択します。\n2. 「スライドショー開始」ボタンをタップします。\n3. 設定メニューでスライドショーの間隔や時計表示などをカスタマイズできます。\n4. フォトフレームをお楽しみください！\n\nスライドショー中に画面をタップすると操作ボタンが表示されます。',
     'help.version': 'バージョン',
     'help.contact': 'お問い合わせ',
     'help.legal': '法的事項',
     'help.privacyPolicy': 'プライバシーポリシー',
     'help.termsOfService': '利用規約',
     'help.back': '戻る',
-    'help.privacyPolicyContent': 'このアプリは、ユーザーの個人データを収集しません。アプリ内で写真を表示するためにのみ、デバイスの写真ライブラリにアクセスします。写真がいかなるサーバーにもアップロードされることはありません。\n\nただし、広告表示のためにAdMob（Google）を使用しています。AdMobは、広告のパーソナライズのためにデータを収集し、Cookie/識別子を使用する場合があります。このアプリを使用することで、このデータ使用に同意したものとみなされます。\n\nオンラインで表示: https://nysnr.github.io/PhotoFrameNew/privacy.html',
-    'help.termsOfServiceContent': 'このアプリは「現状有姿」で提供され、いかなる保証もありません。開発者は、このアプリの使用から生じるいかなる損害についても責任を負いません。お客様は、適用されるすべての法律に従い、責任を持ってアプリを使用することに同意するものとします。\n\nオンラインで表示: https://nysnr.github.io/PhotoFrameNew/terms.html'
+    'help.viewOnline': 'オンラインで詳細を見る',
+    'help.privacyPolicyContent': 'このアプリは、ユーザーの個人データを収集しません。アプリ内で写真を表示するためにのみ、デバイスの写真ライブラリにアクセスします。写真がいかなるサーバーにもアップロードされることはありません。\n\nただし、広告表示のためにAdMob（Google）を使用しています。AdMobは、広告のパーソナライズのためにデータを収集し、Cookie/識別子を使用する場合があります。このアプリを使用することで、このデータ使用に同意したものとみなされます。',
+    'help.termsOfServiceContent': 'このアプリは「現状有姿」で提供され、いかなる保証もありません。開発者は、このアプリの使用から生じるいかなる損害についても責任を負いません。お客様は、適用されるすべての法律に従い、責任を持ってアプリを使用することに同意するものとします。'
   },
   zh: {
     Dark: '深色',
@@ -256,15 +259,16 @@ const translations = {
     'app.help': '帮助',
     'help.about': '关于应用',
     'help.usage': '使用指南',
-    'help.usageContent': '1. 从列表中选择照片。\n2. 点击“开始幻灯片”按钮。\n3. 尽情享受您的数码相框！\n\n幻灯片播放时点击屏幕可显示控制按钮。',
+    'help.usageContent': '1. 从列表中选择照片。\n2. 点击“开始幻灯片”按钮。\n3. 在设置菜单中自定义幻灯片间隔和时钟显示。\n4. 尽情享受您的数码相框！\n\n幻灯片播放时点击屏幕可显示控制按钮。',
     'help.version': '版本',
     'help.contact': '联系方式',
     'help.legal': '法律',
     'help.privacyPolicy': '隐私政策',
     'help.termsOfService': '服务条款',
     'help.back': '返回',
-    'help.privacyPolicyContent': '我们将您的隐私视为重中之重。此应用程序完全在您的设备本地运行以显示您的照片。您的照片绝不会上传到任何服务器或与第三方共享。\n\n为了保持此应用程序免费，我们使用 Google AdMob 进行广告宣传。AdMob 可能会使用匿名标识符来展示相关广告。使用此应用程序即表示您同意此标准做法。\n\n在线查看完整政策: https://nysnr.github.io/PhotoFrameNew/privacy.html',
-    'help.termsOfServiceContent': '感谢您使用 PhotoFrame。本应用程序按“原样”提供，以帮助您欣赏照片。虽然我们力求完美，但开发者不对因使用本应用程序而产生的任何问题负责。请负责任地使用。\n\n在线查看完整条款: https://nysnr.github.io/PhotoFrameNew/terms.html'
+    'help.viewOnline': '在线查看详情',
+    'help.privacyPolicyContent': '我们将您的隐私视为重中之重。此应用程序完全在您的设备本地运行以显示您的照片。您的照片绝不会上传到任何服务器或与第三方共享。\n\n为了保持此应用程序免费，我们使用 Google AdMob 进行广告宣传。AdMob 可能会使用匿名标识符来展示相关广告。使用此应用程序即表示您同意此标准做法。',
+    'help.termsOfServiceContent': '感谢您使用 PhotoFrame。本应用程序按“原样”提供，以帮助您欣赏照片。虽然我们力求完美，但开发者不对因使用本应用程序而产生的任何问题负责。请负责任地使用。'
   },
   es: {
     Dark: 'Oscuro',
@@ -335,15 +339,16 @@ const translations = {
     'app.help': 'Ayuda',
     'help.about': 'Acerca de',
     'help.usage': 'Guía de uso',
-    'help.usageContent': '1. Selecciona fotos de la lista.\n2. Toca el botón "Iniciar presentación".\n3. ¡Disfruta de tu marco de fotos!\n\nToca la pantalla durante la presentación para ver los controles.',
+    'help.usageContent': '1. Selecciona fotos de la lista.\n2. Toca el botón "Iniciar presentación".\n3. Personaliza el intervalo y el reloj en el menú de Ajustes.\n4. ¡Disfruta de tu marco de fotos!\n\nToca la pantalla durante la presentación para ver los controles.',
     'help.version': 'Versión',
     'help.contact': 'Contacto',
     'help.legal': 'Legal',
     'help.privacyPolicy': 'Política de Privacidad',
     'help.termsOfService': 'Términos de Uso',
     'help.back': 'Volver',
-    'help.privacyPolicyContent': 'Valoramos su privacidad por encima de todo. Esta aplicación funciona completamente de forma local en su dispositivo para mostrar sus fotos. Sus fotos nunca se suben a ningún servidor ni se comparten con terceros.\n\nPara mantener esta aplicación gratuita, utilizamos Google AdMob para la publicidad. AdMob puede utilizar identificadores anónimos para ofrecer anuncios relevantes. Al utilizar esta aplicación, usted acepta esta práctica estándar.\n\nVer política completa en línea: https://nysnr.github.io/PhotoFrameNew/privacy.html',
-    'help.termsOfServiceContent': 'Gracias por usar PhotoFrame. Esta aplicación se proporciona "tal cual" para ayudarle a disfrutar de sus fotos. Aunque nos esforzamos por la perfección, el desarrollador no se hace responsable de ningún problema derivado de su uso. Por favor, utilícela responsablemente.\n\nVer términos completos en línea: https://nysnr.github.io/PhotoFrameNew/terms.html'
+    'help.viewOnline': 'Ver detalles en línea',
+    'help.privacyPolicyContent': 'Valoramos su privacidad por encima de todo. Esta aplicación funciona completamente de forma local en su dispositivo para mostrar sus fotos. Sus fotos nunca se suben a ningún servidor ni se comparten con terceros.\n\nPara mantener esta aplicación gratuita, utilizamos Google AdMob para la publicidad. AdMob puede utilizar identificadores anónimos para ofrecer anuncios relevantes. Al utilizar esta aplicación, usted acepta esta práctica estándar.',
+    'help.termsOfServiceContent': 'Gracias por usar PhotoFrame. Esta aplicación se proporciona "tal cual" para ayudarle a disfrutar de sus fotos. Aunque nos esforzamos por la perfección, el desarrollador no se hace responsable de ningún problema derivado de su uso. Por favor, utilícela responsablemente.'
   }
 };
 
@@ -1126,6 +1131,28 @@ export default function App() {
                 <Text style={{ color: '#fff', fontSize: 16, lineHeight: 24 }}>
                   {helpSection === 'privacy' ? t('help.privacyPolicyContent') : t('help.termsOfServiceContent')}
                 </Text>
+                
+                <TouchableOpacity
+                  style={{ 
+                    marginTop: 20, 
+                    padding: 12, 
+                    backgroundColor: 'rgba(255,255,255,0.2)', 
+                    borderRadius: 8, 
+                    alignItems: 'center',
+                    flexDirection: 'row',
+                    justifyContent: 'center'
+                  }}
+                  onPress={() => {
+                    const url = helpSection === 'privacy' 
+                      ? 'https://nysnr.github.io/PhotoFrameNew/privacy.html' 
+                      : 'https://nysnr.github.io/PhotoFrameNew/terms.html';
+                    Linking.openURL(url).catch(err => console.error("Couldn't load page", err));
+                  }}
+                >
+                  <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>
+                    {t('help.viewOnline')} 🌐
+                  </Text>
+                </TouchableOpacity>
               </View>
             )}
             
