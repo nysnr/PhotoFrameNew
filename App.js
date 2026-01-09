@@ -740,10 +740,17 @@ export default function App() {
   // 言語変更
   const changeLanguage = (lang) => {
     setCurrentLanguage(lang);
-    Alert.alert(
-      t('alert.languageChanged.title'),
-      t('alert.languageChanged.message', { language: t(`lang.${lang}`) })
-    );
+    
+    // 変更後の言語リソースを直接取得してアラートを表示
+    // (state更新は非同期のため、t()を使うと更新前の言語で表示されてしまうため)
+    const newLangData = translations[lang];
+    const title = newLangData['alert.languageChanged.title'] || 'Language Changed';
+    const languageName = newLangData[`lang.${lang}`] || lang;
+    let message = newLangData['alert.languageChanged.message'] || 'Language set to {{language}}';
+    
+    message = message.replace('{{language}}', languageName);
+    
+    Alert.alert(title, message);
   };
 
   // CSS メディアクエリを使用した画面回転対応（Web環境用）
