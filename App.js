@@ -179,7 +179,13 @@ const translations = {
     'help.usage': '使い方ガイド',
     'help.usageContent': '1. 一覧から写真を選択します。\n2. 「スライドショー開始」ボタンをタップします。\n3. フォトフレームをお楽しみください！\n\nスライドショー中に画面をタップすると操作ボタンが表示されます。',
     'help.version': 'バージョン',
-    'help.contact': 'お問い合わせ'
+    'help.contact': 'お問い合わせ',
+    'help.legal': '法的事項',
+    'help.privacyPolicy': 'プライバシーポリシー',
+    'help.termsOfService': '利用規約',
+    'help.back': '戻る',
+    'help.privacyPolicyContent': 'このアプリは、ユーザーの個人データを収集しません。アプリ内で写真を表示するためにのみ、デバイスの写真ライブラリにアクセスします。写真がいかなるサーバーにもアップロードされることはありません。\n\nただし、広告表示のためにAdMob（Google）を使用しています。AdMobは、広告のパーソナライズのためにデータを収集し、Cookie/識別子を使用する場合があります。このアプリを使用することで、このデータ使用に同意したものとみなされます。\n\nオンラインで表示: https://nysnr.github.io/PhotoFrameNew/privacy.html',
+    'help.termsOfServiceContent': 'このアプリは「現状有姿」で提供され、いかなる保証もありません。開発者は、このアプリの使用から生じるいかなる損害についても責任を負いません。お客様は、適用されるすべての法律に従い、責任を持ってアプリを使用することに同意するものとします。\n\nオンラインで表示: https://nysnr.github.io/PhotoFrameNew/terms.html'
   },
   zh: {
     Dark: '深色',
