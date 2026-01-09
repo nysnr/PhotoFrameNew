@@ -105,8 +105,8 @@ const translations = {
     'help.privacyPolicy': 'Privacy Policy',
     'help.termsOfService': 'Terms of Service',
     'help.back': 'Back',
-    'help.privacyPolicyContent': 'This application does not collect personal user data. It accesses your device\'s photo library solely to display photos within the app. No photos are uploaded to any server.\n\nHowever, we use AdMob (Google) to display advertisements. AdMob may collect data and use cookies/identifiers to personalize ads. By using this app, you agree to this data usage.',
-    'help.termsOfServiceContent': 'This application is provided "as is" without warranty of any kind. The developer is not responsible for any damages arising from the use of this app. You agree to use the app responsibly and in accordance with all applicable laws.'
+    'help.privacyPolicyContent': 'This application does not collect personal user data. It accesses your device\'s photo library solely to display photos within the app. No photos are uploaded to any server.\n\nHowever, we use AdMob (Google) to display advertisements. AdMob may collect data and use cookies/identifiers to personalize ads. By using this app, you agree to this data usage.\n\nView online: https://nysnr.github.io/PhotoFrameNew/privacy.html',
+    'help.termsOfServiceContent': 'This application is provided "as is" without warranty of any kind. The developer is not responsible for any damages arising from the use of this app. You agree to use the app responsibly and in accordance with all applicable laws.\n\nView online: https://nysnr.github.io/PhotoFrameNew/terms.html'
   },
   ja: {
     Dark: 'ダーク',
@@ -252,7 +252,13 @@ const translations = {
     'help.usage': '使用指南',
     'help.usageContent': '1. 从列表中选择照片。\n2. 点击“开始幻灯片”按钮。\n3. 尽情享受您的数码相框！\n\n幻灯片播放时点击屏幕可显示控制按钮。',
     'help.version': '版本',
-    'help.contact': '联系方式'
+    'help.contact': '联系方式',
+    'help.legal': '法律',
+    'help.privacyPolicy': '隐私政策',
+    'help.termsOfService': '服务条款',
+    'help.back': '返回',
+    'help.privacyPolicyContent': '本应用程序不收集个人用户数据。它仅访问您设备的照片库以在应用程序内显示照片。任何照片都不会上传到任何服务器。\n\n但是，我们使用 AdMob (Google) 来显示广告。AdMob 可能会收集数据并使用 Cookie/标识符来个性化广告。使用此应用程序即表示您同意此数据使用。\n\n在线查看: https://nysnr.github.io/PhotoFrameNew/privacy.html',
+    'help.termsOfServiceContent': '本应用程序按“原样”提供，没有任何形式的保证。开发者不对因使用本应用程序而产生的任何损害负责。您同意负责任地并根据所有适用法律使用本应用程序。\n\n在线查看: https://nysnr.github.io/PhotoFrameNew/terms.html'
   },
   es: {
     Dark: 'Oscuro',
@@ -330,8 +336,8 @@ const translations = {
     'help.privacyPolicy': 'Política de Privacidad',
     'help.termsOfService': 'Términos de Uso',
     'help.back': 'Volver',
-    'help.privacyPolicyContent': 'Esta aplicación no recopila datos personales del usuario. Accede a la biblioteca de fotos de su dispositivo únicamente para mostrar fotos dentro de la aplicación. No se suben fotos a ningún servidor.\n\nSin embargo, utilizamos AdMob (Google) para mostrar anuncios. AdMob puede recopilar datos y utilizar cookies/identificadores para personalizar los anuncios. Al utilizar esta aplicación, usted acepta este uso de datos.',
-    'help.termsOfServiceContent': 'Esta aplicación se proporciona "tal cual" sin garantía de ningún tipo. El desarrollador no se hace responsable de ningún daño derivado del uso de esta aplicación.'
+    'help.privacyPolicyContent': 'Esta aplicación no recopila datos personales del usuario. Accede a la biblioteca de fotos de su dispositivo únicamente para mostrar fotos dentro de la aplicación. No se suben fotos a ningún servidor.\n\nSin embargo, utilizamos AdMob (Google) para mostrar anuncios. AdMob puede recopilar datos y utilizar cookies/identificadores para personalizar los anuncios. Al utilizar esta aplicación, usted acepta este uso de datos.\n\nVer en línea: https://nysnr.github.io/PhotoFrameNew/privacy.html',
+    'help.termsOfServiceContent': 'Esta aplicación se proporciona "tal cual" sin garantía de ningún tipo. El desarrollador no se hace responsable de ningún daño derivado del uso de esta aplicación.\n\nVer en línea: https://nysnr.github.io/PhotoFrameNew/terms.html'
   },}
 };
 
