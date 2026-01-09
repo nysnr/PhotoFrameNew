@@ -22,24 +22,29 @@ export default function AdBanner({
   const [retryCount, setRetryCount] = useState(0);
   const [BannerAdComp, setBannerAdComp] = useState(null);
   const [BannerAdSize, setBannerAdSize] = useState(null);
-  const isExpoGo = Constants?.appOwnership === 'expo';
+  const isExpoGo = Constants?.executionEnvironment === 'storeClient';
 
   // Avoid importing native module on web entirely
   useEffect(() => {
     if (Platform.OS === 'web') return;
     if (isExpoGo) return;
     let mounted = true;
-    import('react-native-google-mobile-ads')
-      .then(mod => {
-        if (!mounted) return;
-        if (mod?.BannerAd && mod?.BannerAdSize) {
-          setBannerAdComp(() => mod.BannerAd);
-          setBannerAdSize(mod.BannerAdSize);
-        }
-      })
-      .catch(() => {
-        // Silently ignore on failure
-      });
+    try {
+      // Dynamic import to avoid bundling issues in Expo Go
+      import('react-native-google-mobile-ads')
+        .then(mod => {
+          if (!mounted) return;
+          if (mod?.BannerAd && mod?.BannerAdSize) {
+            setBannerAdComp(() => mod.BannerAd);
+            setBannerAdSize(mod.BannerAdSize);
+          }
+        })
+        .catch(err => {
+          console.log('AdMob import failed (expected in Expo Go):', err);
+        });
+    } catch (e) {
+      console.log('AdMob dynamic import error:', e);
+    }
     return () => { mounted = false; };
   }, []);
 
