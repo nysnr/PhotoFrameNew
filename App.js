@@ -100,7 +100,13 @@ const translations = {
     'help.usage': 'Usage Guide',
     'help.usageContent': '1. Select photos from the list.\n2. Tap "Start Slideshow" button.\n3. Enjoy your photos!\n\nTap the screen during slideshow to see controls.',
     'help.version': 'Version',
-    'help.contact': 'Contact'
+    'help.contact': 'Contact',
+    'help.legal': 'Legal',
+    'help.privacyPolicy': 'Privacy Policy',
+    'help.termsOfService': 'Terms of Service',
+    'help.back': 'Back',
+    'help.privacyPolicyContent': 'This application does not collect personal user data. It accesses your device\'s photo library solely to display photos within the app. No photos are uploaded to any server.\n\nHowever, we use AdMob (Google) to display advertisements. AdMob may collect data and use cookies/identifiers to personalize ads. By using this app, you agree to this data usage.',
+    'help.termsOfServiceContent': 'This application is provided "as is" without warranty of any kind. The developer is not responsible for any damages arising from the use of this app. You agree to use the app responsibly and in accordance with all applicable laws.'
   },
   ja: {
     Dark: 'ダーク',
@@ -319,8 +325,14 @@ const translations = {
     'help.usage': 'Guía de uso',
     'help.usageContent': '1. Selecciona fotos de la lista.\n2. Toca el botón "Iniciar presentación".\n3. ¡Disfruta de tu marco de fotos!\n\nToca la pantalla durante la presentación para ver los controles.',
     'help.version': 'Versión',
-    'help.contact': 'Contacto'
-  }
+    'help.contact': 'Contacto',
+    'help.legal': 'Legal',
+    'help.privacyPolicy': 'Política de Privacidad',
+    'help.termsOfService': 'Términos de Uso',
+    'help.back': 'Volver',
+    'help.privacyPolicyContent': 'Esta aplicación no recopila datos personales del usuario. Accede a la biblioteca de fotos de su dispositivo únicamente para mostrar fotos dentro de la aplicación. No se suben fotos a ningún servidor.\n\nSin embargo, utilizamos AdMob (Google) para mostrar anuncios. AdMob puede recopilar datos y utilizar cookies/identificadores para personalizar los anuncios. Al utilizar esta aplicación, usted acepta este uso de datos.',
+    'help.termsOfServiceContent': 'Esta aplicación se proporciona "tal cual" sin garantía de ningún tipo. El desarrollador no se hace responsable de ningún daño derivado del uso de esta aplicación.'
+  },}
 };
 
 // マットカラーの定義
@@ -391,6 +403,9 @@ export default function App() {
   // 時計・日付サイズ（small | medium | large）。現在の組み合わせを「medium」とする
   const [clockDateSize, setClockDateSize] = useState('medium');
   
+  // ヘルプ画面の表示セクション状態 ('main' | 'privacy' | 'terms')
+  const [helpSection, setHelpSection] = useState('main');
+
   const slideshowTimer = useRef(null);
   const slideshowStartTimeout = useRef(null);
   const closeButtonTimer = useRef(null);
@@ -458,6 +473,13 @@ export default function App() {
   useEffect(() => {
     // 何もしない：OSの回転に任せる
   }, [showSettings]);
+
+  // ヘルプ画面が表示されたときにセクションをリセット
+  useEffect(() => {
+    if (showHelp) {
+      setHelpSection('main');
+    }
+  }, [showHelp]);
 
   // 権限の確認と写真の読み込み
   useEffect(() => {
@@ -1025,33 +1047,75 @@ export default function App() {
       >
         <SafeAreaView style={styles.settingsContent}>
           <View style={styles.settingsHeader}>
-            <Text style={styles.settingsTitle}>{t('app.help')}</Text>
-            <TouchableOpacity onPress={() => setShowHelp(false)}>
-              <Text style={styles.closeButton}>{t('app.close')}</Text>
-            </TouchableOpacity>
+            {helpSection === 'main' ? (
+              <>
+                <Text style={styles.settingsTitle}>{t('app.help')}</Text>
+                <TouchableOpacity onPress={() => setShowHelp(false)}>
+                  <Text style={styles.closeButton}>{t('app.close')}</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <Text style={styles.settingsTitle}>
+                  {helpSection === 'privacy' ? t('help.privacyPolicy') : t('help.termsOfService')}
+                </Text>
+                <TouchableOpacity onPress={() => setHelpSection('main')}>
+                  <Text style={styles.closeButton}>{t('help.back')}</Text>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
           
           <ScrollView style={styles.settingsScroll}>
-            {/* 使い方ガイド */}
-            <View style={styles.settingSection}>
-              <Text style={styles.settingLabel}>{t('help.usage')}</Text>
-              <Text style={{ color: '#fff', fontSize: 16, lineHeight: 24, paddingHorizontal: 10 }}>
-                {t('help.usageContent')}
-              </Text>
-            </View>
+            {helpSection === 'main' ? (
+              <>
+                {/* 使い方ガイド */}
+                <View style={styles.settingSection}>
+                  <Text style={styles.settingLabel}>{t('help.usage')}</Text>
+                  <Text style={{ color: '#fff', fontSize: 16, lineHeight: 24, paddingHorizontal: 10 }}>
+                    {t('help.usageContent')}
+                  </Text>
+                </View>
 
-            {/* バージョン情報 */}
-            <View style={styles.settingSection}>
-              <Text style={styles.settingLabel}>{t('help.about')}</Text>
-              <View style={{ backgroundColor: 'rgba(255,255,255,0.1)', padding: 15, borderRadius: 10 }}>
-                <Text style={{ color: '#fff', fontSize: 16, marginBottom: 5 }}>
-                  {t('app.title')}
-                </Text>
-                <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14 }}>
-                  {t('help.version')}: 1.0.0 (Beta)
+                {/* バージョン情報 */}
+                <View style={styles.settingSection}>
+                  <Text style={styles.settingLabel}>{t('help.about')}</Text>
+                  <View style={{ backgroundColor: 'rgba(255,255,255,0.1)', padding: 15, borderRadius: 10 }}>
+                    <Text style={{ color: '#fff', fontSize: 16, marginBottom: 5 }}>
+                      {t('app.title')}
+                    </Text>
+                    <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14 }}>
+                      {t('help.version')}: 1.0.0 (Beta)
+                    </Text>
+                  </View>
+                </View>
+
+                {/* 法的事項 */}
+                <View style={styles.settingSection}>
+                  <Text style={styles.settingLabel}>{t('help.legal')}</Text>
+                  <View style={styles.languageButtons}>
+                    <TouchableOpacity
+                      style={[styles.languageButton, matteColor === 'white' && { backgroundColor: 'rgba(0,0,0,0.2)' }]}
+                      onPress={() => setHelpSection('privacy')}
+                    >
+                      <Text style={styles.languageButtonText}>{t('help.privacyPolicy')}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.languageButton, matteColor === 'white' && { backgroundColor: 'rgba(0,0,0,0.2)' }]}
+                      onPress={() => setHelpSection('terms')}
+                    >
+                      <Text style={styles.languageButtonText}>{t('help.termsOfService')}</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </>
+            ) : (
+              <View style={{ padding: 15 }}>
+                <Text style={{ color: '#fff', fontSize: 16, lineHeight: 24 }}>
+                  {helpSection === 'privacy' ? t('help.privacyPolicyContent') : t('help.termsOfServiceContent')}
                 </Text>
               </View>
-            </View>
+            )}
             
             {/* Banner Ad - help screen */}
             <AdBanner style={{ marginTop: 10 }} />
