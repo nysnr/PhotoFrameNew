@@ -105,8 +105,8 @@ const translations = {
     'help.privacyPolicy': 'Privacy Policy',
     'help.termsOfService': 'Terms of Service',
     'help.back': 'Back',
-    'help.privacyPolicyContent': 'This application does not collect personal user data. It accesses your device\'s photo library solely to display photos within the app. No photos are uploaded to any server.\n\nHowever, we use AdMob (Google) to display advertisements. AdMob may collect data and use cookies/identifiers to personalize ads. By using this app, you agree to this data usage.\n\nView online: https://nysnr.github.io/PhotoFrameNew/privacy.html',
-    'help.termsOfServiceContent': 'This application is provided "as is" without warranty of any kind. The developer is not responsible for any damages arising from the use of this app. You agree to use the app responsibly and in accordance with all applicable laws.\n\nView online: https://nysnr.github.io/PhotoFrameNew/terms.html'
+    'help.privacyPolicyContent': 'We prioritize your privacy above all. This app operates entirely locally on your device to display your photos. Your photos are never uploaded to any server or shared with third parties.\n\nTo keep this app free, we use Google AdMob for advertising. AdMob may use anonymous identifiers to serve relevant ads. By using this app, you agree to this standard practice.\n\nView full policy online: https://nysnr.github.io/PhotoFrameNew/privacy.html',
+    'help.termsOfServiceContent': 'Thank you for using PhotoFrame. This app is provided "as is" to help you enjoy your photos. While we strive for perfection, the developer cannot be held liable for any issues arising from its use. Please use responsibly.\n\nView full terms online: https://nysnr.github.io/PhotoFrameNew/terms.html'
   },
   ja: {
     Dark: 'ダーク',
@@ -263,8 +263,8 @@ const translations = {
     'help.privacyPolicy': '隐私政策',
     'help.termsOfService': '服务条款',
     'help.back': '返回',
-    'help.privacyPolicyContent': '本应用程序不收集个人用户数据。它仅访问您设备的照片库以在应用程序内显示照片。任何照片都不会上传到任何服务器。\n\n但是，我们使用 AdMob (Google) 来显示广告。AdMob 可能会收集数据并使用 Cookie/标识符来个性化广告。使用此应用程序即表示您同意此数据使用。\n\n在线查看: https://nysnr.github.io/PhotoFrameNew/privacy.html',
-    'help.termsOfServiceContent': '本应用程序按“原样”提供，没有任何形式的保证。开发者不对因使用本应用程序而产生的任何损害负责。您同意负责任地并根据所有适用法律使用本应用程序。\n\n在线查看: https://nysnr.github.io/PhotoFrameNew/terms.html'
+    'help.privacyPolicyContent': '我们将您的隐私视为重中之重。此应用程序完全在您的设备本地运行以显示您的照片。您的照片绝不会上传到任何服务器或与第三方共享。\n\n为了保持此应用程序免费，我们使用 Google AdMob 进行广告宣传。AdMob 可能会使用匿名标识符来展示相关广告。使用此应用程序即表示您同意此标准做法。\n\n在线查看完整政策: https://nysnr.github.io/PhotoFrameNew/privacy.html',
+    'help.termsOfServiceContent': '感谢您使用 PhotoFrame。本应用程序按“原样”提供，以帮助您欣赏照片。虽然我们力求完美，但开发者不对因使用本应用程序而产生的任何问题负责。请负责任地使用。\n\n在线查看完整条款: https://nysnr.github.io/PhotoFrameNew/terms.html'
   },
   es: {
     Dark: 'Oscuro',
@@ -342,9 +342,9 @@ const translations = {
     'help.privacyPolicy': 'Política de Privacidad',
     'help.termsOfService': 'Términos de Uso',
     'help.back': 'Volver',
-    'help.privacyPolicyContent': 'Esta aplicación no recopila datos personales del usuario. Accede a la biblioteca de fotos de su dispositivo únicamente para mostrar fotos dentro de la aplicación. No se suben fotos a ningún servidor.\n\nSin embargo, utilizamos AdMob (Google) para mostrar anuncios. AdMob puede recopilar datos y utilizar cookies/identificadores para personalizar los anuncios. Al utilizar esta aplicación, usted acepta este uso de datos.\n\nVer en línea: https://nysnr.github.io/PhotoFrameNew/privacy.html',
-    'help.termsOfServiceContent': 'Esta aplicación se proporciona "tal cual" sin garantía de ningún tipo. El desarrollador no se hace responsable de ningún daño derivado del uso de esta aplicación.\n\nVer en línea: https://nysnr.github.io/PhotoFrameNew/terms.html'
-  },}
+    'help.privacyPolicyContent': 'Valoramos su privacidad por encima de todo. Esta aplicación funciona completamente de forma local en su dispositivo para mostrar sus fotos. Sus fotos nunca se suben a ningún servidor ni se comparten con terceros.\n\nPara mantener esta aplicación gratuita, utilizamos Google AdMob para la publicidad. AdMob puede utilizar identificadores anónimos para ofrecer anuncios relevantes. Al utilizar esta aplicación, usted acepta esta práctica estándar.\n\nVer política completa en línea: https://nysnr.github.io/PhotoFrameNew/privacy.html',
+    'help.termsOfServiceContent': 'Gracias por usar PhotoFrame. Esta aplicación se proporciona "tal cual" para ayudarle a disfrutar de sus fotos. Aunque nos esforzamos por la perfección, el desarrollador no se hace responsable de ningún problema derivado de su uso. Por favor, utilícela responsablemente.\n\nVer términos completos en línea: https://nysnr.github.io/PhotoFrameNew/terms.html'
+  }
 };
 
 // マットカラーの定義
