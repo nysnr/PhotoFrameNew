@@ -29,6 +29,12 @@ module.exports = ({ config }) => {
     ...base.expo,
     plugins: [
       [
+        'expo-localization',
+        {
+          // Optional: You can configure localization settings here if needed
+        }
+      ],
+      [
         'react-native-google-mobile-ads',
         {
           androidAppId: googleAdsAppId,

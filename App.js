@@ -21,6 +21,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as MediaLibrary from 'expo-media-library';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import { LinearGradient } from 'expo-linear-gradient';
+import { getLocales } from 'expo-localization';
 import { AdBanner } from './components/ads';
 import Constants from 'expo-constants';
 
@@ -348,7 +349,25 @@ const matteGradients = {
 };
 
 export default function App() {
-  const [currentLanguage, setCurrentLanguage] = useState('en');
+  // デバイスの言語設定に基づいて初期言語を決定する関数
+  const getInitialLanguage = () => {
+    try {
+      const locales = getLocales();
+      if (locales && locales.length > 0) {
+        const languageCode = locales[0].languageCode;
+        // サポートしている言語コードの場合、その言語を返す
+        if (['ja', 'es', 'zh'].includes(languageCode)) {
+          return languageCode;
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to get device locale', e);
+    }
+    // デフォルトまたはサポート外の場合は英語
+    return 'en';
+  };
+
+  const [currentLanguage, setCurrentLanguage] = useState(getInitialLanguage());
   const [photos, setPhotos] = useState([]);
   const [selectedPhotos, setSelectedPhotos] = useState([]);
   const [loading, setLoading] = useState(false);
