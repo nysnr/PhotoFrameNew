@@ -26,6 +26,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { getLocales } from 'expo-localization';
 import { Ionicons } from '@expo/vector-icons';
 import { AdBanner } from './components/ads';
+import { InterstitialManager } from './components/ads/InterstitialManager';
 import { getStyles } from './AppStyles';
 import Constants from 'expo-constants';
 
@@ -51,7 +52,7 @@ const translations = {
     Rose: 'Rose',
     Lavender: 'Lavender',
     Oak: 'Oak',
-    PhotoFrame: 'Photo Frame',
+    PhotoFrame: 'Simple Photo Frame',
     Settings: 'Settings',
     Gallery: 'Gallery',
     SelectPhoto: 'Select Photo',
@@ -63,7 +64,7 @@ const translations = {
     Loading: 'Loading...',
     NoPhotos: 'No photos found',
     'app.close': 'Close',
-    'app.title': 'Photo Frame',
+    'app.title': 'Simple Photo Frame',
     'app.settings': 'Settings',
     'app.selectPhotos': 'Selected: {{count}} photos',
     'settings.changeLanguage': 'Change Language',
@@ -101,7 +102,7 @@ const translations = {
     'label.sizeLarge': 'Large',
 
     'permission.title': '📷 Photo Access',
-    'permission.message': 'To allow PhotoFrame to access photos, enable photo permissions in your device settings.',
+    'permission.message': 'To allow Simple Photo Frame to access photos, enable photo permissions in your device settings.',
     'alert.languageChanged.title': 'Language Changed',
     'alert.languageChanged.message': 'Language set to {{language}}',
     'lang.en': 'English',
@@ -122,7 +123,7 @@ const translations = {
     'help.back': 'Back',
     'help.viewOnline': 'View details online',
     'help.privacyPolicyContent': 'We prioritize your privacy above all. This app operates entirely locally on your device to display your photos. Your photos are never uploaded to any server or shared with third parties.\n\nTo keep this app free, we use Google AdMob for advertising. AdMob may use anonymous identifiers to serve relevant ads. By using this app, you agree to this standard practice.',
-    'help.termsOfServiceContent': 'Thank you for using PhotoFrame. This app is provided "as available" to help you enjoy your photos. While we strive for perfection, the developer cannot be held liable for any issues arising from its use. Please use responsibly.'
+    'help.termsOfServiceContent': 'Thank you for using Simple Photo Frame. This app is provided "as available" to help you enjoy your photos. While we strive for perfection, the developer cannot be held liable for any issues arising from its use. Please use responsibly.'
   },
   ja: {
     Dark: 'ダーク',
@@ -133,7 +134,7 @@ const translations = {
     Rose: 'ローズ',
     Lavender: 'ラベンダー',
     Oak: 'オーク',
-    PhotoFrame: 'フォトフレーム',
+    PhotoFrame: 'Simple Photo Frame',
     Settings: '設定',
     Gallery: 'ギャラリー',
     SelectPhoto: '写真を選択',
@@ -145,7 +146,7 @@ const translations = {
     Loading: '読み込み中...',
     NoPhotos: '写真が見つかりません',
     'app.close': '閉じる',
-    'app.title': 'フォトフレーム',
+    'app.title': 'Simple Photo Frame',
     'app.settings': '設定',
     'app.selectPhotos': '選択中: {{count}}枚',
     'settings.changeLanguage': '言語を変更',
@@ -183,7 +184,7 @@ const translations = {
     'label.sizeLarge': '大サイズ',
 
     'permission.title': '📷 写真へのアクセス',
-    'permission.message': 'PhotoFrameアプリが写真にアクセスするには、端末の設定で写真へのアクセス権限を許可してください。',
+    'permission.message': 'Simple Photo Frameアプリが写真にアクセスするには、端末の設定で写真へのアクセス権限を許可してください。',
     'alert.languageChanged.title': '言語変更',
     'alert.languageChanged.message': '言語を{{language}}に設定しました',
     'lang.en': '英語',
@@ -215,7 +216,7 @@ const translations = {
     Rose: '玫瑰',
     Lavender: '薰衣草',
     Oak: '橡木',
-    PhotoFrame: '相框',
+    PhotoFrame: 'Simple Photo Frame',
     Settings: '设置',
     Gallery: '图库',
     SelectPhoto: '选择照片',
@@ -227,7 +228,7 @@ const translations = {
     Loading: '加载中...',
     NoPhotos: '未找到照片',
     'app.close': '关闭',
-    'app.title': '相框',
+    'app.title': 'Simple Photo Frame',
     'app.settings': '设置',
     'app.selectPhotos': '已选择: {{count}} 张照片',
     'settings.changeLanguage': '更改语言',
@@ -265,7 +266,7 @@ const translations = {
     'label.sizeLarge': '大',
 
     'permission.title': '📷 照片访问',
-    'permission.message': '要允许 PhotoFrame 访问照片，请在设备设置中启用照片权限。',
+    'permission.message': '要允许 Simple Photo Frame 访问照片，请在设备设置中启用照片权限。',
     'alert.languageChanged.title': '语言更改',
     'alert.languageChanged.message': '语言已设置为 {{language}}',
     'lang.en': '英语',
@@ -286,7 +287,7 @@ const translations = {
     'help.back': '返回',
     'help.viewOnline': '在线查看详情',
     'help.privacyPolicyContent': '我们把您的隐私视为重中之重。此应用程序完全在您的设备本地运行以显示您的照片。您的照片不会上传到任何服务器或与第三方共享。\n\n为了维持此应用程序免费，我们使用 Google AdMob 进行广告宣传。AdMob 可能会使用匿名标识符来展示相关广告。使用此应用程序即表示您同意此标准做法。',
-    'help.termsOfServiceContent': '感谢您使用 PhotoFrame。本应用程序按“现状”提供，以帮助您欣赏照片。虽然我们力求完美，但开发者不对因使用本应用程序而产生的任何问题负责。请负责任地使用。'
+    'help.termsOfServiceContent': '感谢您使用 Simple Photo Frame。本应用程序按“现状”提供，以帮助您欣赏照片。虽然我们力求完美，但开发者不对因使用本应用程序而产生的任何问题负责。请负责任地使用。'
   },
   es: {
     Dark: 'Oscuro',
@@ -297,7 +298,7 @@ const translations = {
     Rose: 'Rosa',
     Lavender: 'Lavanda',
     Oak: 'Roble',
-    PhotoFrame: 'Marco de Fotos',
+    PhotoFrame: 'Simple Photo Frame',
     Settings: 'Ajustes',
     Gallery: 'Galería',
     SelectPhoto: 'Seleccionar foto',
@@ -309,7 +310,7 @@ const translations = {
     Loading: 'Cargando...',
     NoPhotos: 'No se encontraron fotos',
     'app.close': 'Cerrar',
-    'app.title': 'Marco de Fotos',
+    'app.title': 'Simple Photo Frame',
     'app.settings': 'Ajustes',
     'app.selectPhotos': 'Seleccionadas: {{count}} fotos',
     'settings.changeLanguage': 'Cambiar idioma',
@@ -347,7 +348,7 @@ const translations = {
     'label.sizeLarge': 'Grande',
 
     'permission.title': '📷 Acceso a fotos',
-    'permission.message': 'Para permitir que PhotoFrame acceda a las fotos, habilita los permisos de fotos en la configuración del dispositivo.',
+    'permission.message': 'Para permitir que Simple Photo Frame acceda a las fotos, habilita los permisos de fotos en la configuración del dispositivo.',
     'alert.languageChanged.title': 'Idioma cambiado',
     'alert.languageChanged.message': 'Idioma establecido a {{language}}',
     'lang.en': 'Inglés',
@@ -368,7 +369,7 @@ const translations = {
     'help.back': 'Volver',
     'help.viewOnline': 'Ver detalles en línea',
     'help.privacyPolicyContent': 'Valoramos su privacidad por encima de todo. Esta aplicación funciona completamente de forma local en su dispositivo para mostrar sus fotos. Sus fotos nunca se suben a ningún servidor ni se comparten con terceros.\n\nPara mantener esta aplicación gratuita, utilizamos Google AdMob para la publicidad. AdMob puede utilizar identificadores anónimos para ofrecer anuncios relevantes. Al utilizar esta aplicación, usted acepta esta práctica estándar.',
-    'help.termsOfServiceContent': 'Gracias por usar PhotoFrame. Esta aplicación se proporciona "tal como está" para ayudarle a disfrutar de sus fotos. Aunque nos esforzamos por la perfección, el desarrollador no se hace responsable de ningún problema derivado de su uso. Por favor, utilícela responsablemente.'
+    'help.termsOfServiceContent': 'Gracias por usar Simple Photo Frame. Esta aplicación se proporciona "tal como está" para ayudarle a disfrutar de sus fotos. Aunque nos esforzamos por la perfección, el desarrollador no se hace responsable de ningún problema derivado de su uso. Por favor, utilícela responsablemente.'
   }
 };
 
@@ -1668,7 +1669,7 @@ export default function App() {
     return (
       <View style={{ flex: 1, backgroundColor: '#000', justifyContent: 'center', alignItems: 'center' }}>
         <StatusBar style="light" backgroundColor="#000" />
-        <Text style={{ color: '#fff', fontSize: 32, fontWeight: 'bold', letterSpacing: 2 }}>PhotoFrame</Text>
+        <Text style={{ color: '#fff', fontSize: 32, fontWeight: 'bold', letterSpacing: 2 }}>Simple Photo Frame</Text>
       </View>
     );
   }

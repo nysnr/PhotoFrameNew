@@ -1,6 +1,6 @@
-# PhotoFrameNew
+# Simple Photo Frame
 
-PhotoFrameNew is a digital photo frame application built with Expo and React Native. It allows users to view photos in a slideshow format, supports multiple languages, and integrates Google Mobile Ads.
+Simple Photo Frame is a digital photo frame application built with Expo and React Native. It allows users to view photos in a slideshow format, supports multiple languages, and integrates Google Mobile Ads.
 
 ## Features
 
