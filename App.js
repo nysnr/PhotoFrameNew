@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
   StyleSheet,
   View,
@@ -16,19 +16,31 @@ import {
   ScrollView,
   RefreshControl,
   AppState,
-  Linking
+  Linking,
+  BackHandler
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as MediaLibrary from 'expo-media-library';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getLocales } from 'expo-localization';
+import { Ionicons } from '@expo/vector-icons';
 import { AdBanner } from './components/ads';
+import { getStyles } from './AppStyles';
 import Constants from 'expo-constants';
 
 const { width, height } = Dimensions.get('window');
 
-// 翻訳データ
+// 3本線ハンバーガーメニューコンポーネント
+const HamburgerIcon = ({ color }) => (
+  <View style={{ width: 24, height: 18, justifyContent: 'space-between', alignItems: 'center' }}>
+    <View style={{ width: 24, height: 2, backgroundColor: color, borderRadius: 1 }} />
+    <View style={{ width: 24, height: 2, backgroundColor: color, borderRadius: 1 }} />
+    <View style={{ width: 24, height: 2, backgroundColor: color, borderRadius: 1 }} />
+  </View>
+);
+
+// 翻訳チEEタ
 const translations = {
   en: {
     Dark: 'Dark',
@@ -43,6 +55,8 @@ const translations = {
     Settings: 'Settings',
     Gallery: 'Gallery',
     SelectPhoto: 'Select Photo',
+    SelectAll: 'Select All',
+    DeselectAll: 'Deselect All',
     SavePhoto: 'Save Photo',
     Cancel: 'Cancel',
     Confirm: 'Confirm',
@@ -114,7 +128,7 @@ const translations = {
     Dark: 'ダーク',
     White: 'ホワイト',
     Ocean: '海',
-    Sunset: '夕焼け',
+    Sunset: '夕暮れ',
     Forest: '森',
     Rose: 'ローズ',
     Lavender: 'ラベンダー',
@@ -123,6 +137,8 @@ const translations = {
     Settings: '設定',
     Gallery: 'ギャラリー',
     SelectPhoto: '写真を選択',
+    SelectAll: '全選択',
+    DeselectAll: '全解除',
     SavePhoto: '写真を保存',
     Cancel: 'キャンセル',
     Confirm: '確認',
@@ -137,7 +153,7 @@ const translations = {
     'loading.photos': '写真を読み込み中...',
     'button.retry': '再試行',
     'button.understand': '了解',
-    'button.startSlideshow': '🎬 スライドショー開始',
+    'button.startSlideshow': '▶ スライドショー開始',
     'hint.swipeDown': 'もっと見るには下にスワイプしてください',
     'loading.morePhotos': '追加の写真を読み込み中...',
     'settings.matteColor': 'カラー',
@@ -148,12 +164,12 @@ const translations = {
     'settings.dark': 'ダーク',
     'settings.white': 'ホワイト',
     'settings.ocean': '海',
-    'settings.sunset': '夕焼け',
+    'settings.sunset': '夕暮れ',
     'settings.forest': '森',
     'settings.rose': 'ローズ',
     'settings.lavender': 'ラベンダー',
     'settings.oak': 'オーク',
-    'settings.clockAndDateDisplay': '時計・日付表示',
+    'settings.clockAndDateDisplay': '時計と日付表示',
 
     'label.clockOn': '時計オン',
     'label.clockOff': '時計オフ',
@@ -161,7 +177,7 @@ const translations = {
     'label.dateOff': '日付オフ',
     'label.on': 'オン',
     'label.off': 'オフ',
-    'settings.clockDateSize': '時計・日付の文字サイズ',
+    'settings.clockDateSize': '時計と日付の文字サイズ',
     'label.sizeSmall': '小サイズ',
     'label.sizeMedium': '中サイズ',
     'label.sizeLarge': '大サイズ',
@@ -187,7 +203,7 @@ const translations = {
     'help.termsOfService': '利用規約',
     'help.back': '戻る',
     'help.viewOnline': 'オンラインで詳細を見る',
-    'help.privacyPolicyContent': 'このアプリは、ユーザーの個人データを収集しません。アプリ内で写真を表示するためにのみ、デバイスの写真ライブラリにアクセスします。写真がいかなるサーバーにもアップロードされることはありません。\n\nただし、広告表示のためにAdMob（Google）を使用しています。AdMobは、広告のパーソナライズのためにデータを収集し、Cookie/識別子を使用する場合があります。このアプリを使用することで、このデータ使用に同意したものとみなされます。',
+    'help.privacyPolicyContent': 'このアプリは、ユーザーの個人データを収集しません。アプリ内で写真を表示するためにのみ、デバイスの写真ライブラリにアクセスします。写真がどこかなるサーバーにもアップロードされることはありません。\n\nただし、広告表示のためにAdMob（Google）を使用しています。AdMobは、広告のパーソナライズのためにデータを収集し、Cookie/識別子を使用する場合があります。このアプリを使用することで、このデータ使用に同意したものとみなされます。',
     'help.termsOfServiceContent': 'このアプリは現在の状態で提供され、動作の完全性を保証するものではありません。開発者は、このアプリの使用から生じるいかなる損害についても責任を負いません。お客様は、適用されるすべての法律に従い、責任を持ってアプリを使用することに同意するものとします。'
   },
   zh: {
@@ -203,6 +219,8 @@ const translations = {
     Settings: '设置',
     Gallery: '图库',
     SelectPhoto: '选择照片',
+    SelectAll: '全选',
+    DeselectAll: '取消全选',
     SavePhoto: '保存照片',
     Cancel: '取消',
     Confirm: '确认',
@@ -211,20 +229,20 @@ const translations = {
     'app.close': '关闭',
     'app.title': '相框',
     'app.settings': '设置',
-    'app.selectPhotos': '已选择：{{count}} 张照片',
+    'app.selectPhotos': '已选择: {{count}} 张照片',
     'settings.changeLanguage': '更改语言',
     'loading.initializing': '初始化中...',
     'loading.photos': '正在加载照片...',
     'button.retry': '重试',
     'button.understand': '知道了',
-    'button.startSlideshow': '🎬 开始幻灯片',
+    'button.startSlideshow': '▶ 开始幻灯片',
     'hint.swipeDown': '向下滑动查看更多',
     'loading.morePhotos': '正在加载更多照片...',
     'settings.matteColor': '颜色',
     'settings.slideshowInterval': '幻灯片间隔',
     'settings.language': '语言',
     'settings.seconds': '{{count}}秒',
-    'settings.minutes': '{{count}}分钟',
+    'settings.minutes': '{{count}}分',
     'settings.dark': '深色',
     'settings.white': '白色',
     'settings.ocean': '海洋',
@@ -255,7 +273,7 @@ const translations = {
     'lang.zh': '中文',
     'lang.es': '西班牙语',
     'alert.selectPhotos.title': '请选择照片',
-    'alert.selectPhotos.message': '开始幻灯片之前请至少选择一张照片。',
+    'alert.selectPhotos.message': '开始幻灯片前请至少选择一张照片。',
     'app.help': '帮助',
     'help.about': '关于应用',
     'help.usage': '使用指南',
@@ -267,7 +285,7 @@ const translations = {
     'help.termsOfService': '服务条款',
     'help.back': '返回',
     'help.viewOnline': '在线查看详情',
-    'help.privacyPolicyContent': '我们将您的隐私视为重中之重。此应用程序完全在您的设备本地运行以显示您的照片。您的照片绝不会上传到任何服务器或与第三方共享。\n\n为了保持此应用程序免费，我们使用 Google AdMob 进行广告宣传。AdMob 可能会使用匿名标识符来展示相关广告。使用此应用程序即表示您同意此标准做法。',
+    'help.privacyPolicyContent': '我们把您的隐私视为重中之重。此应用程序完全在您的设备本地运行以显示您的照片。您的照片不会上传到任何服务器或与第三方共享。\n\n为了维持此应用程序免费，我们使用 Google AdMob 进行广告宣传。AdMob 可能会使用匿名标识符来展示相关广告。使用此应用程序即表示您同意此标准做法。',
     'help.termsOfServiceContent': '感谢您使用 PhotoFrame。本应用程序按“现状”提供，以帮助您欣赏照片。虽然我们力求完美，但开发者不对因使用本应用程序而产生的任何问题负责。请负责任地使用。'
   },
   es: {
@@ -283,6 +301,8 @@ const translations = {
     Settings: 'Ajustes',
     Gallery: 'Galería',
     SelectPhoto: 'Seleccionar foto',
+    SelectAll: 'Seleccionar todo',
+    DeselectAll: 'Deseleccionar todo',
     SavePhoto: 'Guardar foto',
     Cancel: 'Cancelar',
     Confirm: 'Confirmar',
@@ -352,33 +372,32 @@ const translations = {
   }
 };
 
-// マットカラーの定義
+// マットカラーの定義 (Modern Palette)
 const matteColors = {
-  dark: '#000000',
-  white: '#FFFFFF',
-  ocean: '#006994',
-  sunset: '#FF6B35',
-  forest: '#2D5016',
-  rose: '#8B4B6B',
-  lavender: '#967BB6',
-  oak: '#8B4513'
+  dark: '#121212',
+  white: '#F5F5F7',
+  ocean: '#2E5C78',
+  sunset: '#D97D54',
+  forest: '#4A6741',
+  rose: '#9D5C63',
+  lavender: '#8E8DAD',
+  oak: '#8B7355'
 };
 
-// マットカラーのグラデーション定義
+// マットカラーのグラデーション定義 (Subtle & Modern)
 const matteGradients = {
-  dark: ['#000000', '#333333'],
-  white: ['#FFFFFF', '#E0E0E0'],
-  // トップはより深く、ボトムはやや深めのカラーに調整
-  ocean: ['#003a57', '#3d9ec0'],
-  sunset: ['#CC4E1D', '#E07F52'],
-  forest: ['#1E3A0F', '#6FBF5E'],
-  rose: ['#6A3952', '#B77395'],
-  lavender: ['#70589A', '#A793D4'],
-  oak: ['#5E2F0D', '#B8875A']
+  dark: ['#121212', '#2C2C2C'],
+  white: ['#FFFFFF', '#F0F0F5'],
+  ocean: ['#1F4068', '#2E5C78'],
+  sunset: ['#C05621', '#D97D54'],
+  forest: ['#2F4858', '#4A6741'],
+  rose: ['#6D4C41', '#9D5C63'],
+  lavender: ['#673AB7', '#8E8DAD'],
+  oak: ['#5D4037', '#8B7355']
 };
 
 export default function App() {
-  // デバイスの言語設定に基づいて初期言語を決定する関数
+  // チE��イスの言語設定に基づぁE��初期言語を決定する関数
   const getInitialLanguage = () => {
     try {
       const locales = getLocales();
@@ -399,6 +418,7 @@ export default function App() {
   const [currentLanguage, setCurrentLanguage] = useState(getInitialLanguage());
   const [photos, setPhotos] = useState([]);
   const [selectedPhotos, setSelectedPhotos] = useState([]);
+  const selectedPhotoIds = useMemo(() => new Set(selectedPhotos.map(p => p.id)), [selectedPhotos]);
   const [loading, setLoading] = useState(false);
   const [hasPermission, setHasPermission] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
@@ -417,17 +437,19 @@ export default function App() {
   const [showDate, setShowDate] = useState(true);
   const [now, setNow] = useState(new Date());
   const [showCloseButton, setShowCloseButton] = useState(true);
-  // 時計・日付サイズ（small | medium | large）。現在の組み合わせを「medium」とする
+  const [showMenu, setShowMenu] = useState(false);
+  // 時計�E日付サイズ�E�Emall | medium | large�E�。現在の絁E��合わせを「medium」とする
   const [clockDateSize, setClockDateSize] = useState('medium');
   
-  // ヘルプ画面の表示セクション状態 ('main' | 'privacy' | 'terms')
+  // ヘルプ画面の表示セクション状慁E('main' | 'privacy' | 'terms')
   const [helpSection, setHelpSection] = useState('main');
+  const [showSplash, setShowSplash] = useState(true);
 
   const slideshowTimer = useRef(null);
   const slideshowStartTimeout = useRef(null);
   const closeButtonTimer = useRef(null);
 
-  // 時計・日付のフォーマット関数
+  // 時計�E日付�Eフォーマット関数
   const formatTime = () => {
     const d = now;
     const hh = String(d.getHours()).padStart(2, '0');
@@ -445,13 +467,17 @@ export default function App() {
     return `${dateStr} (${weekday})`;
   };
 
-  // 画面遷移時の回転解除関数（シンプル版）
+  // 画面遷移時�E回転解除関数�E�シンプル版！E
   const unlockOrientationOnTransition = () => {
-    // OSの自動回転に任せるため何もしない
+    // OSの自動回転に任せるため何もしなぁE
   };
 
-  // 動的スタイルを生成
-  const styles = getStyles(screenOrientation, clockDateSize);
+  // 背景色が明るいかどうかを判定
+  const isLightMode = ['white', 'lavender'].includes(matteColor);
+  const primaryTextColor = isLightMode ? '#000' : '#fff';
+
+  // 動的スタイルを生戁E
+  const styles = getStyles(screenOrientation, clockDateSize, isLightMode);
 
   // 翻訳関数
   const t = (key, params) => {
@@ -464,7 +490,7 @@ export default function App() {
     return text;
   };
 
-  // 画面の向きを監視（シンプル版）
+  // 画面の向きを監視（シンプル版！E
   useEffect(() => {
     const updateOrientation = () => {
       const { width, height } = Dimensions.get('window');
@@ -481,24 +507,32 @@ export default function App() {
     };
   }, []);
 
-  // スライドショー画面での回転強制を撤去（シンプル化）
+  // スプラッシュ画面の制御
   useEffect(() => {
-    // 何もしない：OSの回転に任せる
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // スライドショー画面での回転強制を撤去・シンプル化
+  useEffect(() => {
+    // 何もしなぁE��OSの回転に任せる
   }, [showSlideshow]);
 
-  // 設定画面での回転強制を撤去（シンプル化）
+  // 設定画面での回転強制を撤去�E�シンプル化！E
   useEffect(() => {
-    // 何もしない：OSの回転に任せる
+    // 何もしなぁE��OSの回転に任せる
   }, [showSettings]);
 
-  // ヘルプ画面が表示されたときにセクションをリセット
+  // ヘルプ画面が表示されたときにセクションをリセチE��
   useEffect(() => {
     if (showHelp) {
       setHelpSection('main');
     }
   }, [showHelp]);
 
-  // 権限の確認と写真の読み込み
+  // 権限�E確認と写真の読み込み
   useEffect(() => {
     (async () => {
       const { status } = await MediaLibrary.requestPermissionsAsync();
@@ -531,7 +565,7 @@ export default function App() {
       const result = await MediaLibrary.getAssetsAsync(options);
       console.log('Loaded photos:', result.assets.length);
       
-      // 画像の詳細情報を取得
+      // 画像�E詳細惁E��を取征E
       const photosWithInfo = await Promise.all(
         result.assets.map(async (asset) => {
           try {
@@ -559,10 +593,10 @@ export default function App() {
       setEndCursor(result.endCursor);
     } catch (error) {
       console.error('Error loading photos:', error);
-      // エラーが発生してもアプリを停止させない
+      // エラーが発生してもアプリを停止させなぁE
       setHasNextPage(false);
       
-      // デモ用のサンプル画像を追加（Expo Goでテスト用）
+      // チE��用のサンプル画像を追加�E�Expo GoでチE��ト用�E�E
       if (photos.length === 0) {
         const samplePhotos = [
           {
@@ -595,7 +629,7 @@ export default function App() {
     }
   };
 
-  // 写真の選択/選択解除
+  // 写真の選抁E選択解除
   const togglePhotoSelection = (photo) => {
     setSelectedPhotos(prev => {
       const isSelected = prev.some(p => p.id === photo.id);
@@ -608,7 +642,16 @@ export default function App() {
 
   };
 
-  // スライドショーの開始
+  // 全選択・全解除
+  const handleSelectAll = () => {
+    if (selectedPhotos.length === photos.length && photos.length > 0) {
+      setSelectedPhotos([]);
+    } else {
+      setSelectedPhotos([...photos]);
+    }
+  };
+
+  // スライドショーの開姁E
   const startSlideshow = async () => {
     console.log('=== SLIDESHOW FUNCTION CALLED ===');
     console.log('Function startSlideshow is being executed');
@@ -629,7 +672,7 @@ export default function App() {
         return;
       }
       
-      // 選択された写真が有効なURIを持っているか確認
+      // 選択された写真が有効なURIを持ってぁE��か確誁E
       const validPhotos = selectedPhotos.filter(photo => photo.uri && photo.uri.length > 0);
       console.log('Valid photos count:', validPhotos.length);
       console.log('Valid photos URIs:', validPhotos.map(p => p.uri));
@@ -649,25 +692,25 @@ export default function App() {
         slideshowTimer.current = null;
       }
       
-      // スライドショー状態を設定
+      // スライドショー状態を設宁E
       console.log('Setting slideshow state...');
       setCurrentSlideIndex(0);
       setShowSlideshow(true);
       setShowCloseButton(true);
       console.log('Slideshow state set: showSlideshow=true, currentSlideIndex=0');
       
-      // 終了ボタンの自動非表示タイマーを設定
+      // 終亁E�Eタンの自動非表示タイマ�Eを設宁E
       closeButtonTimer.current = setTimeout(() => {
         setShowCloseButton(false);
         console.log('Close button auto-hidden after 5 seconds');
       }, 5000);
       
-      // スライドショータイマーを設定（複数の写真がある場合のみ）
+      // スライドショータイマ�Eを設定（褁E��の写真がある場合�Eみ�E�E
       if (validPhotos.length > 1) {
         console.log('Multiple photos detected, setting up slideshow timer...');
         console.log(`Timer interval: ${slideshowInterval}ms`);
         
-        // 少し遅延させてから開始（状態更新を確実にするため）
+        // 少し遁E��させてから開始（状態更新を確実にするため�E�E
         slideshowStartTimeout.current = setTimeout(() => {
           console.log('Starting slideshow interval timer...');
           slideshowTimer.current = setInterval(() => {
@@ -679,7 +722,7 @@ export default function App() {
             });
           }, slideshowInterval);
           console.log('Slideshow timer started successfully');
-        }, 1000); // 1秒の遅延で確実に開始
+        }, 1000); // 1秒�E遁E��で確実に開姁E
       } else {
         console.log('Only one photo selected, no timer needed');
       }
@@ -763,28 +806,28 @@ export default function App() {
     }
   };
 
-  // スライドショーのタイマー管理はstartSlideshow/stopSlideshow関数で行う
-  // useEffectでのタイマー管理は無効化（重複を防ぐため）
+  // スライドショーのタイマ�E管琁E�EstartSlideshow/stopSlideshow関数で行う
+  // useEffectでのタイマ�E管琁E�E無効化（重褁E��防ぐためE��E
 
-  // 終了ボタンの表示/非表示制御
+  // 終亁E�Eタンの表示/非表示制御
   const handleSlideshowTouch = () => {
     if (!showCloseButton) {
       setShowCloseButton(true);
       console.log('Close button shown on touch');
       
-      // 既存のタイマーをクリア
+      // 既存�Eタイマ�Eをクリア
       if (closeButtonTimer.current) {
         clearTimeout(closeButtonTimer.current);
         closeButtonTimer.current = null;
       }
       
-      // 新しいタイマーを設定
+      // 新しいタイマ�Eを設宁E
       closeButtonTimer.current = setTimeout(() => {
         setShowCloseButton(false);
         console.log('Close button auto-hidden after 5 seconds');
       }, 5000);
     } else {
-      // 既に表示されている場合はタイマーをリセット
+      // 既に表示されてぁE��場合�Eタイマ�EをリセチE��
       if (closeButtonTimer.current) {
         clearTimeout(closeButtonTimer.current);
       }
@@ -799,8 +842,8 @@ export default function App() {
   const changeLanguage = (lang) => {
     setCurrentLanguage(lang);
     
-    // 変更後の言語リソースを直接取得してアラートを表示
-    // (state更新は非同期のため、t()を使うと更新前の言語で表示されてしまうため)
+    // 変更後�E言語リソースを直接取得してアラートを表示
+    // (state更新は非同期�Eため、t()を使ぁE��更新前�E言語で表示されてしまぁE��めE
     const newLangData = translations[lang];
     const title = newLangData['alert.languageChanged.title'] || 'Language Changed';
     const languageName = newLangData[`lang.${lang}`] || lang;
@@ -811,7 +854,7 @@ export default function App() {
     Alert.alert(title, message);
   };
 
-  // CSS メディアクエリを使用した画面回転対応（Web環境用）
+  // CSS メチE��アクエリを使用した画面回転対応！Eeb環墁E���E�E
   useEffect(() => {
     if (Platform.OS === 'web' && typeof document !== 'undefined') {
       const style = document.createElement('style');
@@ -845,20 +888,21 @@ export default function App() {
     }
   }, []);
 
-  // 時計更新タイマー
+  // 時計更新タイマ�E
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(id);
   }, []);
 
-  // 写真アイテムのレンダリング
+  // 写真アイチE��のレンダリング
   const renderPhotoItem = ({ item }) => {
-    const isSelected = selectedPhotos.some(p => p.id === item.id);
+    const isSelected = selectedPhotoIds.has(item.id);
     
     return (
       <TouchableOpacity
         style={[styles.photoItem, isSelected && styles.selectedPhoto]}
         onPress={() => togglePhotoSelection(item)}
+        activeOpacity={0.7}
       >
         <Image 
           source={{ uri: item.uri }} 
@@ -866,196 +910,376 @@ export default function App() {
           onError={(error) => {
             console.warn('Image load error for:', item.id, error);
           }}
-          onLoad={() => {
-            console.log('Image loaded successfully:', item.id);
-          }}
           defaultSource={require('./assets/icon.png')}
         />
         {isSelected && (
           <View style={styles.selectedOverlay}>
-            <Text style={styles.selectedText}>✓</Text>
+            <Ionicons name="checkmark-circle" size={32} color="#4CD964" />
           </View>
         )}
-        <View style={styles.photoInfo}>
-          <Text style={styles.photoInfoText} numberOfLines={1}>
-            {item.filename || `Photo ${item.id}`}
-          </Text>
-        </View>
       </TouchableOpacity>
     );
   };
 
-  // 設定画面のレンダリング
-  const renderSettings = () => (
-    <Modal visible={showSettings} animationType="slide" supportedOrientations={['portrait','portrait-upside-down','landscape','landscape-left','landscape-right']}>
-      <LinearGradient
-        colors={matteGradients[matteColor]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={styles.settingsContainer}
+  // BackHandler制御
+  useEffect(() => {
+    const backAction = () => {
+      if (showMenu) {
+        setShowMenu(false);
+        return true;
+      }
+      if (showSettings) {
+        setShowSettings(false);
+        return true;
+      }
+      if (showHelp) {
+        setShowHelp(false);
+        return true;
+      }
+      if (showSlideshow) {
+        stopSlideshow();
+        return true;
+      }
+      return false; // デフォルトの戻る動作（アプリ終了など）
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+
+    return () => backHandler.remove();
+  }, [showMenu, showSettings, showHelp, showSlideshow, stopSlideshow]);
+
+  // ハンバーガーメニューを開く
+  const openMenu = () => {
+    setShowMenu(true);
+  };
+
+  // メニュー遷移ハチEEラ
+  const handleMenuNavigation = (target) => {
+    setShowMenu(false);
+    
+    setTimeout(() => {
+      switch(target) {
+        case 'gallery':
+          setShowSettings(false);
+          setShowHelp(false);
+          stopSlideshow();
+          break;
+        case 'settings':
+          setShowSettings(true);
+          setShowHelp(false);
+          break;
+        case 'help':
+          setShowHelp(true);
+          setShowSettings(false);
+          break;
+        case 'slideshow':
+          if (selectedPhotos.length > 0) {
+            startSlideshow();
+          } else {
+            Alert.alert(t('alert.selectPhotos.title'), t('alert.selectPhotos.message'));
+          }
+          break;
+      }
+    }, 300);
+  };
+
+  // グローバルメニューのレンダリング
+  const renderGlobalMenu = () => {
+    if (!showMenu) return null;
+    return (
+    <View
+      style={{
+        position: 'absolute',
+        top: 0, left: 0, right: 0, bottom: 0,
+        zIndex: 9999, // 最前面
+        elevation: 9999
+      }}
+    >
+      <TouchableOpacity 
+        style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'flex-end' }} 
+        activeOpacity={1} 
+        onPress={() => setShowMenu(false)}
       >
-        <SafeAreaView style={styles.settingsContent}>
-          <View style={styles.settingsHeader}>
-            <Text style={styles.settingsTitle}>{t('Settings')}</Text>
-            <TouchableOpacity onPress={() => {
-              setShowSettings(false);
-            }}>
-              <Text style={styles.closeButton}>{t('app.close')}</Text>
+        <SafeAreaView style={{ flex: 1, width: '100%', alignItems: 'flex-end' }}>
+          <View style={{ 
+            backgroundColor: '#2A2A2A', 
+            width: 250, 
+            marginTop: 60, 
+            marginRight: 20, 
+            borderRadius: 16, 
+            padding: 10,
+            borderWidth: 1,
+            borderColor: 'rgba(255,255,255,0.1)',
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.3,
+            shadowRadius: 5,
+            elevation: 10
+          }}>
+            <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 10, marginLeft: 10, fontWeight: 'bold' }}>MENU</Text>
+            
+            <TouchableOpacity 
+              style={{ flexDirection: 'row', alignItems: 'center', padding: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)' }}
+              onPress={() => handleMenuNavigation('gallery')}
+            >
+              <Ionicons name="images" size={24} color="#fff" style={{ marginRight: 15 }} />
+              <Text style={{ color: '#fff', fontSize: 16 }}>{t('Gallery')}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={{ flexDirection: 'row', alignItems: 'center', padding: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)' }}
+              onPress={() => handleMenuNavigation('settings')}
+            >
+              <Ionicons name="settings" size={24} color="#fff" style={{ marginRight: 15 }} />
+              <Text style={{ color: '#fff', fontSize: 16 }}>{t('Settings')}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={{ flexDirection: 'row', alignItems: 'center', padding: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)' }}
+              onPress={() => handleMenuNavigation('help')}
+            >
+              <Ionicons name="help-circle" size={24} color="#fff" style={{ marginRight: 15 }} />
+              <Text style={{ color: '#fff', fontSize: 16 }}>{t('app.help')}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={{ flexDirection: 'row', alignItems: 'center', padding: 12 }}
+              onPress={() => handleMenuNavigation('slideshow')}
+            >
+              <Ionicons name="play-circle" size={24} color="#fff" style={{ marginRight: 15 }} />
+              <Text style={{ color: '#fff', fontSize: 16 }}>{t('button.startSlideshow')}</Text>
             </TouchableOpacity>
           </View>
-          
-          <ScrollView style={styles.settingsScroll}>
-            {/* 言語設定 */}
-            <View style={styles.settingSection}>
-              <Text style={styles.settingLabel}>{t('settings.language')}</Text>
-              <View style={styles.languageButtons}>
-                 {['en', 'ja', 'zh', 'es'].map(lang => (
-                  <TouchableOpacity
-                    key={lang}
-                    style={[
-                      styles.languageButton,
-                      matteColor === 'white' && { backgroundColor: 'rgba(0,0,0,0.2)' },
-                      currentLanguage === lang && styles.activeLanguageButton
-                    ]}
-                    onPress={() => changeLanguage(lang)}
-                  >
-                    <Text style={[
-                      styles.languageButtonText,
-                      currentLanguage === lang && styles.activeLanguageButtonText
-                    ]}>
-                      {t(`lang.${lang}`)}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-
-              </View>
-            </View>
-            
-            {/* マットカラー設定 */}
-            <View style={styles.settingSection}>
-              <Text style={styles.settingLabel}>{t('settings.matteColor')}</Text>
-              <View style={styles.colorGrid}>
-                {Object.keys(matteColors).map(color => (
-                  <TouchableOpacity
-                    key={color}
-                    style={[
-                      styles.colorButton,
-                      { backgroundColor: matteColors[color] },
-                      matteColor === color && styles.activeColorButton
-                    ]}
-                    onPress={() => setMatteColor(color)}
-                  >
-                    <Text style={[
-                      styles.colorButtonText,
-                      color === 'white' ? { color: '#000' } : { color: '#fff' }
-                    ]}>
-                      {t(`settings.${color}`)}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-            
-            {/* スライドショー間隔設定 */}
-            <View style={styles.settingSection}>
-              <Text style={styles.settingLabel}>{t('settings.slideshowInterval')}</Text>
-              <View style={styles.intervalButtons}>
-                {[3000, 180000, 1800000, 10800000].map(interval => (
-                  <TouchableOpacity
-                    key={interval}
-                    style={[
-                      styles.intervalButton,
-                      matteColor === 'white' && { backgroundColor: 'rgba(0,0,0,0.2)' },
-                      slideshowInterval === interval && styles.activeIntervalButton
-                    ]}
-                    onPress={() => {
-                      setSlideshowInterval(interval);
-                    }}
-                  >
-                    <Text style={[
-                      styles.intervalButtonText,
-                      slideshowInterval === interval && styles.activeIntervalButtonText
-                    ]}>
-                      {interval % 60000 === 0
-                        ? t('settings.minutes', { count: Math.round(interval / 60000) })
-                        : t('settings.seconds', { count: Math.round(interval / 1000) })}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-
-            {/* 時計・日付表示 */}
-            <View style={styles.settingSection}>
-              <Text style={styles.settingLabel}>{t('settings.clockAndDateDisplay')}</Text>
-              <View style={styles.languageButtons}>
-                {/* 時計：1アイテムでオン/オフ切替 */}
-                <TouchableOpacity
-                  style={[
-                    styles.languageButton,
-                    matteColor === 'white' && { backgroundColor: 'rgba(0,0,0,0.2)' },
-                    showClock && styles.activeLanguageButton
-                  ]}
-                  onPress={() => setShowClock((prev) => !prev)}
-                >
-                  <Text style={[styles.languageButtonText, showClock && styles.activeLanguageButtonText]}>
-                    {showClock ? t('label.clockOn') : t('label.clockOff')}
-                  </Text>
-                </TouchableOpacity>
-
-                {/* 日付：1アイテムでオン/オフ切替 */}
-                <TouchableOpacity
-                  style={[
-                    styles.languageButton,
-                    matteColor === 'white' && { backgroundColor: 'rgba(0,0,0,0.2)' },
-                    showDate && styles.activeLanguageButton
-                  ]}
-                  onPress={() => setShowDate((prev) => !prev)}
-                >
-                  <Text style={[styles.languageButtonText, showDate && styles.activeLanguageButtonText]}>
-                    {showDate ? t('label.dateOn') : t('label.dateOff')}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-
-            {/* 時計・日付の文字サイズ */}
-            <View style={styles.settingSection}>
-              <Text style={styles.settingLabel}>{t('settings.clockDateSize')}</Text>
-              <View style={styles.languageButtons}>
-                {['small', 'medium', 'large'].map(sz => (
-                  <TouchableOpacity
-                    key={sz}
-                    style={[
-                      styles.languageButton,
-                      matteColor === 'white' && { backgroundColor: 'rgba(0,0,0,0.2)' },
-                      clockDateSize === sz && styles.activeLanguageButton
-                    ]}
-                    onPress={() => setClockDateSize(sz)}
-                  >
-                    <Text style={[
-                      styles.languageButtonText,
-                      clockDateSize === sz && styles.activeLanguageButtonText
-                    ]}>
-                      {sz === 'small' ? t('label.sizeSmall') : sz === 'medium' ? t('label.sizeMedium') : t('label.sizeLarge')}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-
-            {/* Banner Ad - settings screen */}
-            <AdBanner style={{ marginTop: 10 }} />
-          </ScrollView>
         </SafeAreaView>
-      </LinearGradient>
-    </Modal>
+      </TouchableOpacity>
+    </View>
   );
+  };
+
+  // 設定画面のレンダリング (Modern Sheet)
+  const renderSettings = () => {
+    if (!showSettings) return null;
+    return (
+    <View 
+      style={{
+        position: 'absolute',
+        top: 0, left: 0, right: 0, bottom: 0,
+        zIndex: 200, // スライドショーより上、メニューより下
+        elevation: 200
+      }}
+    >
+      <View style={styles.modalOverlay}>
+        <LinearGradient
+          colors={matteGradients[matteColor]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          style={styles.settingsContainer}
+        >
+          <SafeAreaView style={styles.settingsContent}>
+            <View style={styles.settingsHeader}>
+              <TouchableOpacity 
+                style={{ 
+                  flexDirection: 'row', 
+                  alignItems: 'center', 
+                  backgroundColor: isLightMode ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.2)', 
+                  paddingHorizontal: 12, 
+                  paddingVertical: 8, 
+                  borderRadius: 20
+                }} 
+                onPress={() => setShowSettings(false)}
+              >
+                <Ionicons name="chevron-back" size={20} color={primaryTextColor} />
+                <Text style={{ color: primaryTextColor, fontSize: 14, fontWeight: 'bold', marginLeft: 4 }}>{t('help.back')}</Text>
+              </TouchableOpacity>
+              
+              <View style={{ flex: 1, alignItems: 'center' }}>
+                <Text style={styles.settingsTitle}>{t('Settings')}</Text>
+              </View>
+
+              <TouchableOpacity 
+                  onPress={openMenu} 
+                  style={{ 
+                    width: 44, 
+                    height: 44, 
+                    borderRadius: 22,
+                    backgroundColor: isLightMode ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.2)', 
+                    justifyContent: 'center', 
+                    alignItems: 'center' 
+                  }}
+                >
+                  <HamburgerIcon color={primaryTextColor} />
+                </TouchableOpacity>
+              </View>
+            
+            <ScrollView style={styles.settingsScroll}>
+              {/* 言語設定 */}
+              <View style={styles.settingSection}>
+                <Text style={styles.settingLabel}>
+                  <Ionicons name="language" size={18} color={primaryTextColor} /> {t('settings.language')}
+                </Text>
+                <View style={styles.languageButtons}>
+                   {['en', 'ja', 'zh', 'es'].map(lang => (
+                    <TouchableOpacity
+                      key={lang}
+                      style={[
+                        styles.languageButton,
+                        currentLanguage === lang && styles.activeLanguageButton
+                      ]}
+                      onPress={() => changeLanguage(lang)}
+                    >
+                      <Text style={[
+                        styles.languageButtonText,
+                        currentLanguage === lang && styles.activeLanguageButtonText
+                      ]}>
+                        {t(`lang.${lang}`)}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+              
+              {/* マットカラー設定 */}
+              <View style={styles.settingSection}>
+                <Text style={styles.settingLabel}>
+                  <Ionicons name="color-palette" size={18} color={primaryTextColor} /> {t('settings.matteColor')}
+                </Text>
+                <View style={styles.colorGrid}>
+                  {Object.keys(matteColors).map(color => (
+                    <TouchableOpacity
+                      key={color}
+                      style={[
+                        styles.colorButton,
+                        { backgroundColor: matteColors[color] },
+                        matteColor === color && styles.activeColorButton
+                      ]}
+                      onPress={() => setMatteColor(color)}
+                    >
+                      {/* Checkmark for active color */}
+                      {matteColor === color && (
+                        <Ionicons 
+                          name="checkmark" 
+                          size={24} 
+                          color={color === 'white' ? '#000' : '#fff'} 
+                        />
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+              
+              {/* スライドショー間隔設定 */}
+              <View style={styles.settingSection}>
+                <Text style={styles.settingLabel}>
+                  <Ionicons name="timer" size={18} color={primaryTextColor} /> {t('settings.slideshowInterval')}
+                </Text>
+                <View style={styles.intervalButtons}>
+                  {[3000, 180000, 1800000, 10800000].map(interval => (
+                    <TouchableOpacity
+                      key={interval}
+                      style={[
+                        styles.intervalButton,
+                        slideshowInterval === interval && styles.activeIntervalButton
+                      ]}
+                      onPress={() => setSlideshowInterval(interval)}
+                    >
+                      <Text style={[
+                        styles.intervalButtonText,
+                        slideshowInterval === interval && styles.activeIntervalButtonText
+                      ]}>
+                        {interval % 60000 === 0
+                          ? t('settings.minutes', { count: Math.round(interval / 60000) })
+                          : t('settings.seconds', { count: Math.round(interval / 1000) })}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+  
+              {/* 時計・日付表示 */}
+              <View style={styles.settingSection}>
+                <Text style={styles.settingLabel}>
+                  <Ionicons name="time" size={18} color={primaryTextColor} /> {t('settings.clockAndDateDisplay')}
+                </Text>
+                <View style={styles.languageButtons}>
+                  {/* 時計 */}
+                  <TouchableOpacity
+                    style={[
+                      styles.languageButton,
+                      showClock && styles.activeLanguageButton
+                    ]}
+                    onPress={() => setShowClock((prev) => !prev)}
+                  >
+                    <Text style={[styles.languageButtonText, showClock && styles.activeLanguageButtonText]}>
+                      {showClock ? t('label.clockOn') : t('label.clockOff')}
+                    </Text>
+                  </TouchableOpacity>
+  
+                  {/* 日付 */}
+                  <TouchableOpacity
+                    style={[
+                      styles.languageButton,
+                      showDate && styles.activeLanguageButton
+                    ]}
+                    onPress={() => setShowDate((prev) => !prev)}
+                  >
+                    <Text style={[styles.languageButtonText, showDate && styles.activeLanguageButtonText]}>
+                      {showDate ? t('label.dateOn') : t('label.dateOff')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+  
+              {/* 時計・日付の文字サイズ */}
+              <View style={styles.settingSection}>
+                <Text style={styles.settingLabel}>
+                  <Ionicons name="resize" size={18} color={primaryTextColor} /> {t('settings.clockDateSize')}
+                </Text>
+                <View style={styles.languageButtons}>
+                  {['small', 'medium', 'large'].map(sz => (
+                    <TouchableOpacity
+                      key={sz}
+                      style={[
+                        styles.languageButton,
+                        clockDateSize === sz && styles.activeLanguageButton
+                      ]}
+                      onPress={() => setClockDateSize(sz)}
+                    >
+                      <Text style={[
+                        styles.languageButtonText,
+                        clockDateSize === sz && styles.activeLanguageButtonText
+                      ]}>
+                        {sz === 'small' ? t('label.sizeSmall') : sz === 'medium' ? t('label.sizeMedium') : t('label.sizeLarge')}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+  
+              {/* Banner Ad - settings screen */}
+              <AdBanner style={{ marginTop: 10, marginBottom: 40 }} />
+            </ScrollView>
+          </SafeAreaView>
+        </LinearGradient>
+      </View>
+    </View>
+  );
+  };
 
   // ヘルプ画面のレンダリング
-  const renderHelp = () => (
-    <Modal visible={showHelp} animationType="slide" supportedOrientations={['portrait','portrait-upside-down','landscape','landscape-left','landscape-right']}>
+  const renderHelp = () => {
+    if (!showHelp) return null;
+    return (
+    <View 
+      style={{
+        position: 'absolute',
+        top: 0, left: 0, right: 0, bottom: 0,
+        zIndex: 200, // 設定画面と同じレベル
+        elevation: 200
+      }}
+    >
       <LinearGradient
         colors={matteGradients[matteColor]}
         start={{ x: 0, y: 0 }}
@@ -1066,19 +1290,63 @@ export default function App() {
           <View style={styles.settingsHeader}>
             {helpSection === 'main' ? (
               <>
-                <Text style={styles.settingsTitle}>{t('app.help')}</Text>
-                <TouchableOpacity onPress={() => setShowHelp(false)}>
-                  <Text style={styles.closeButton}>{t('app.close')}</Text>
+                <TouchableOpacity 
+                  style={{ 
+                    flexDirection: 'row', 
+                    alignItems: 'center', 
+                    backgroundColor: 'rgba(255,255,255,0.2)', 
+                    paddingHorizontal: 12, 
+                    paddingVertical: 8, 
+                    borderRadius: 20
+                  }} 
+                  onPress={() => setShowHelp(false)}
+                >
+                  <Ionicons name="chevron-back" size={20} color="#fff" />
+                  <Text style={{ color: '#fff', fontSize: 14, fontWeight: 'bold', marginLeft: 4 }}>{t('help.back')}</Text>
+                </TouchableOpacity>
+
+                <View style={{ flex: 1, alignItems: 'center' }}>
+                  <Text style={styles.settingsTitle}>{t('app.help')}</Text>
+                </View>
+
+                <TouchableOpacity 
+                  onPress={openMenu} 
+                  style={{ 
+                    width: 44, 
+                    height: 44, 
+                    borderRadius: 22,
+                    backgroundColor: 'rgba(255,255,255,0.2)', 
+                    justifyContent: 'center', 
+                    alignItems: 'center' 
+                  }}
+                >
+                  <HamburgerIcon color="#fff" />
                 </TouchableOpacity>
               </>
             ) : (
               <>
-                <Text style={styles.settingsTitle}>
-                  {helpSection === 'privacy' ? t('help.privacyPolicy') : t('help.termsOfService')}
-                </Text>
-                <TouchableOpacity onPress={() => setHelpSection('main')}>
-                  <Text style={styles.closeButton}>{t('help.back')}</Text>
+                <TouchableOpacity 
+                  style={{ 
+                    flexDirection: 'row', 
+                    alignItems: 'center', 
+                    backgroundColor: 'rgba(255,255,255,0.2)', 
+                    paddingHorizontal: 12, 
+                    paddingVertical: 8, 
+                    borderRadius: 20
+                  }} 
+                  onPress={() => setHelpSection('main')}
+                >
+                  <Ionicons name="chevron-back" size={20} color="#fff" />
+                  <Text style={{ color: '#fff', fontSize: 14, fontWeight: 'bold', marginLeft: 4 }}>{t('help.back')}</Text>
                 </TouchableOpacity>
+
+                <View style={{ flex: 1, alignItems: 'center' }}>
+                  <Text style={styles.settingsTitle}>
+                    {helpSection === 'privacy' ? t('help.privacyPolicy') : t('help.termsOfService')}
+                  </Text>
+                </View>
+                
+                <View style={{ width: 44 }} />
               </>
             )}
           </View>
@@ -1086,19 +1354,23 @@ export default function App() {
           <ScrollView style={styles.settingsScroll}>
             {helpSection === 'main' ? (
               <>
-                {/* 使い方ガイド */}
+                {/* 使ぁE��ガイチE*/}
                 <View style={styles.settingSection}>
-                  <Text style={styles.settingLabel}>{t('help.usage')}</Text>
-                  <Text style={{ color: '#fff', fontSize: 16, lineHeight: 24, paddingHorizontal: 10 }}>
+                  <Text style={styles.settingLabel}>
+                    <Ionicons name="information-circle-outline" size={18} color="#fff" /> {t('help.usage')}
+                  </Text>
+                  <Text style={{ color: '#fff', fontSize: 16, lineHeight: 24, paddingHorizontal: 10, opacity: 0.9 }}>
                     {t('help.usageContent')}
                   </Text>
                 </View>
 
-                {/* バージョン情報 */}
+                {/* バ�Eジョン惁E�� */}
                 <View style={styles.settingSection}>
-                  <Text style={styles.settingLabel}>{t('help.about')}</Text>
+                  <Text style={styles.settingLabel}>
+                     <Ionicons name="code-slash-outline" size={18} color="#fff" /> {t('help.about')}
+                  </Text>
                   <View style={{ backgroundColor: 'rgba(255,255,255,0.1)', padding: 15, borderRadius: 10 }}>
-                    <Text style={{ color: '#fff', fontSize: 16, marginBottom: 5 }}>
+                    <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold', marginBottom: 5 }}>
                       {t('app.title')}
                     </Text>
                     <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14 }}>
@@ -1107,18 +1379,20 @@ export default function App() {
                   </View>
                 </View>
 
-                {/* 法的事項 */}
+                {/* 法的事頁E*/}
                 <View style={styles.settingSection}>
-                  <Text style={styles.settingLabel}>{t('help.legal')}</Text>
+                  <Text style={styles.settingLabel}>
+                    <Ionicons name="document-text-outline" size={18} color="#fff" /> {t('help.legal')}
+                  </Text>
                   <View style={styles.languageButtons}>
                     <TouchableOpacity
-                      style={[styles.languageButton, matteColor === 'white' && { backgroundColor: 'rgba(0,0,0,0.2)' }]}
+                      style={[styles.languageButton, matteColor === 'white' && { backgroundColor: 'rgba(0,0,0,0.1)' }]}
                       onPress={() => setHelpSection('privacy')}
                     >
                       <Text style={styles.languageButtonText}>{t('help.privacyPolicy')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
-                      style={[styles.languageButton, matteColor === 'white' && { backgroundColor: 'rgba(0,0,0,0.2)' }]}
+                      style={[styles.languageButton, matteColor === 'white' && { backgroundColor: 'rgba(0,0,0,0.1)' }]}
                       onPress={() => setHelpSection('terms')}
                     >
                       <Text style={styles.languageButtonText}>{t('help.termsOfService')}</Text>
@@ -1134,13 +1408,15 @@ export default function App() {
                 
                 <TouchableOpacity
                   style={{ 
-                    marginTop: 20, 
-                    padding: 12, 
-                    backgroundColor: 'rgba(255,255,255,0.2)', 
-                    borderRadius: 8, 
+                    marginTop: 30, 
+                    padding: 16, 
+                    backgroundColor: 'rgba(255,255,255,0.15)', 
+                    borderRadius: 30, 
                     alignItems: 'center',
                     flexDirection: 'row',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    borderWidth: 1,
+                    borderColor: 'rgba(255,255,255,0.3)'
                   }}
                   onPress={() => {
                     const url = helpSection === 'privacy' 
@@ -1149,20 +1425,22 @@ export default function App() {
                     Linking.openURL(url).catch(err => console.error("Couldn't load page", err));
                   }}
                 >
-                  <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>
-                    {t('help.viewOnline')} 🌐
+                  <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold', marginRight: 8 }}>
+                    {t('help.viewOnline')}
                   </Text>
+                  <Ionicons name="open-outline" size={20} color="#fff" />
                 </TouchableOpacity>
               </View>
             )}
             
             {/* Banner Ad - help screen */}
-            <AdBanner style={{ marginTop: 10 }} />
+            <AdBanner style={{ marginTop: 20 }} />
           </ScrollView>
         </SafeAreaView>
       </LinearGradient>
-    </Modal>
+    </View>
   );
+  };
 
   // 次のスライドに進む関数
   const nextSlide = () => {
@@ -1170,14 +1448,14 @@ export default function App() {
       setCurrentSlideIndex(prev => {
         const nextIndex = (prev + 1) % selectedPhotos.length;
         console.log(`Manual navigation: advancing from ${prev} to ${nextIndex}`);
-        // 手動切り替え時の回転解除はiOSではスキップ
+        // 手動刁E��替え時の回転解除はiOSではスキチE�E
 
         return nextIndex;
       });
     }
   };
 
-  // 前のスライドに戻る関数
+  // 前�Eスライドに戻る関数
   const prevSlide = () => {
     if (selectedPhotos.length > 1) {
       setCurrentSlideIndex(prev => {
@@ -1188,7 +1466,7 @@ export default function App() {
     }
   };
 
-  // 画像の最適なresizeModeを決定する関数
+  // 画像�E最適なresizeModeを決定する関数
   const getOptimalResizeMode = (photo) => {
     if (!photo || !photo.width || !photo.height) {
       return 'contain';
@@ -1200,20 +1478,20 @@ export default function App() {
     
     console.log(`Photo sizing: screen=${screenWidth}x${screenHeight} (${screenOrientation}), photo=${photo.width}x${photo.height}, ratios: screen=${screenAspectRatio.toFixed(2)}, photo=${photoAspectRatio.toFixed(2)}`);
     
-    // 画面の向きと写真の向きを考慮してより適切な表示モードを選択
+    // 画面の向きと写真の向きを老E�Eしてより適刁E��表示モードを選抁E
     if (screenOrientation === 'landscape') {
-      // 横向き画面の場合
+      // 横向き画面の場吁E
       if (photoAspectRatio > screenAspectRatio * 0.8) {
-        // 写真が画面の比率に近い、または横長の場合
+        // 写真が画面の比率に近い、また�E横長の場吁E
         return 'contain';
       } else {
         // 縦長の写真の場合、画面を最大限活用
         return 'cover';
       }
     } else {
-      // 縦向き画面の場合
+      // 縦向き画面の場吁E
       if (photoAspectRatio < screenAspectRatio * 1.2) {
-        // 写真が画面の比率に近い、または縦長の場合
+        // 写真が画面の比率に近い、また�E縦長の場吁E
         return 'contain';
       } else {
         // 横長の写真の場合、画面を最大限活用
@@ -1222,9 +1500,9 @@ export default function App() {
     }
   };
 
-  // スライドショー画面のレンダリング（修正版）
+  // スライドショー画面のレンダリング�E�修正版！E
   const renderSlideshow = () => {
-    // スライドショーが表示されていない場合は何も表示しない
+    // スライドショーが表示されてぁE��ぁE��合�E何も表示しなぁE
     if (!showSlideshow || selectedPhotos.length === 0) {
       return null;
     }
@@ -1236,12 +1514,14 @@ export default function App() {
     const maxH = screenOrientation === 'portrait' ? screenHeight * 0.85 : screenHeight * 0.90;
     
     return (
-      <Modal 
-        visible={showSlideshow} 
-        animationType="fade"
-        statusBarTranslucent={true}
-        onRequestClose={stopSlideshow}
-        supportedOrientations={['portrait','portrait-upside-down','landscape','landscape-left','landscape-right']}
+      <View
+        style={{
+          position: 'absolute',
+          top: 0, left: 0, right: 0, bottom: 0,
+          zIndex: 100, // 通常画面より上
+          elevation: 100,
+          backgroundColor: '#000'
+        }}
       >
         <TouchableOpacity
           style={styles.slideshowTouchArea}
@@ -1256,28 +1536,49 @@ export default function App() {
              className="slideshow-container"
            >
             {showCloseButton && (
-              <TouchableOpacity
-                style={styles.slideshowCloseButton}
-                onPress={stopSlideshow}
-              >
-                <Text style={styles.slideshowCloseText}>✕</Text>
-              </TouchableOpacity>
+              <View style={[styles.slideshowCloseButton, { 
+                width: 'auto', 
+                flexDirection: 'row', 
+                alignItems: 'center', 
+                backgroundColor: 'transparent',
+                paddingHorizontal: 0,
+                paddingVertical: 0
+              }]}>
+                <TouchableOpacity 
+                  onPress={openMenu} 
+                  style={{ 
+                    width: 44, 
+                    height: 44, 
+                    borderRadius: 22, 
+                    backgroundColor: 'rgba(0,0,0,0.3)', 
+                    justifyContent: 'center', 
+                    alignItems: 'center',
+                    marginRight: 12
+                  }}
+                >
+                    <HamburgerIcon color="rgba(255,255,255,0.9)" />
+                </TouchableOpacity>
+                
+                <TouchableOpacity onPress={stopSlideshow}>
+                  <Ionicons name="close-circle" size={44} color="rgba(255,255,255,0.9)" />
+                </TouchableOpacity>
+              </View>
             )}
           
-          {/* 左半分タップで前の画像 */}
+          {/* 左半�EタチE�Eで前�E画僁E*/}
           <TouchableOpacity
             style={styles.slideshowLeftArea}
             onPressIn={handleSlideshowTouch}
             onPress={prevSlide}
-            activeOpacity={0.3}
+            activeOpacity={0.0}
           />
           
-          {/* 右半分タップで次の画像 */}
+          {/* 右半�EタチE�Eで次の画僁E*/}
           <TouchableOpacity
             style={styles.slideshowRightArea}
             onPressIn={handleSlideshowTouch}
             onPress={nextSlide}
-            activeOpacity={0.3}
+            activeOpacity={0.0}
           />
           
           {currentPhoto && currentPhoto.uri ? (
@@ -1305,6 +1606,7 @@ export default function App() {
             />
           ) : (
             <View style={styles.slideshowErrorContainer}>
+              <Ionicons name="alert-circle-outline" size={64} color="rgba(255,255,255,0.5)" />
               <Text style={styles.slideshowErrorText}>画像を読み込めませんでした</Text>
               <TouchableOpacity
                 style={styles.slideshowNextButton}
@@ -1312,6 +1614,7 @@ export default function App() {
                 onPress={nextSlide}
               >
                 <Text style={styles.slideshowNextButtonText}>次の画像</Text>
+                <Ionicons name="arrow-forward" size={16} color="#fff" style={{marginLeft: 5}} />
               </TouchableOpacity>
             </View>
           )}
@@ -1329,7 +1632,7 @@ export default function App() {
           <AdBanner style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }} />
         </LinearGradient>
         </TouchableOpacity>
-        </Modal>
+        </View>
     );
   };
 
@@ -1360,564 +1663,132 @@ export default function App() {
     );
   }
 
+  // スプラッシュ画面
+  if (showSplash) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#000', justifyContent: 'center', alignItems: 'center' }}>
+        <StatusBar style="light" backgroundColor="#000" />
+        <Text style={{ color: '#fff', fontSize: 32, fontWeight: 'bold', letterSpacing: 2 }}>PhotoFrame</Text>
+      </View>
+    );
+  }
+
   return (
     <GestureHandlerRootView style={styles.container}>
       <LinearGradient colors={matteGradients[matteColor]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.container}>
-        <SafeAreaView style={styles.container}>
-          <StatusBar barStyle="light-content" backgroundColor={matteColors[matteColor]} />
+        <View style={{ flex: 1 }}>
+          <StatusBar style={isLightMode ? "dark" : "light"} backgroundColor="transparent" translucent={true} />
           
-          {/* ヘッダー */}
-          <View style={styles.header}>
-            <Text style={styles.title}>{t('app.title')}</Text>
-            <View style={styles.headerButtons}>
-              <TouchableOpacity
-                style={styles.headerButton}
-                onPress={() => {
-                  setShowHelp(true);
-                }}
-              >
-                <Text style={styles.headerButtonText}>❓</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.headerButton}
-                onPress={() => {
-                  setShowSettings(true);
-                }}
-              >
-                <Text style={styles.headerButtonText}>⚙️</Text>
-              </TouchableOpacity>
+          <SafeAreaView style={{ flex: 1 }}>
+            {/* ヘッダー (Modern) */}
+            <View style={styles.header}>
+              <Text style={styles.title}>{t('Gallery')}</Text>
+              <View style={styles.headerButtons}>
+                <TouchableOpacity
+                  style={styles.selectAllButton}
+                  onPress={handleSelectAll}
+                >
+                  <Text style={styles.selectAllText}>
+                    {selectedPhotos.length === photos.length && photos.length > 0 ? t('DeselectAll') : t('SelectAll')}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.headerButton}
+                  onPress={openMenu}
+                >
+                  <HamburgerIcon color={primaryTextColor} />
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-          
-          {/* 選択状況とスライドショーボタン */}
-          <View style={styles.controlPanel}>
-            <Text style={styles.selectionText}>
-              {t('app.selectPhotos', { count: selectedPhotos.length })}
-            </Text>
-            <TouchableOpacity
-              style={[
-                styles.slideshowButton,
-                selectedPhotos.length === 0 && styles.disabledButton
-              ]}
-              onPress={startSlideshow}
-              disabled={selectedPhotos.length === 0}
-            >
-              <Text style={styles.slideshowButtonText}>
-                {t('button.startSlideshow')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-          
-          {/* 写真ギャラリー */}
-          {hasPermission === null ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#fff" />
-              <Text style={styles.loadingText}>{t('loading.initializing')}</Text>
-            </View>
-          ) : (
-            <FlatList
-              data={photos}
-              renderItem={renderPhotoItem}
-              keyExtractor={(item) => item.id}
-              numColumns={3}
-              style={styles.photoGrid}
-              refreshControl={
-                <RefreshControl
-                  refreshing={refreshing}
-                  onRefresh={() => {
-                    setRefreshing(true);
-                    setEndCursor(null);
-                    setHasNextPage(true);
-                    loadPhotos();
+            
+            {/* 写真ギャラリー */}
+            {hasPermission === null ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={primaryTextColor} />
+                <Text style={[styles.loadingText, { color: primaryTextColor }]}>{t('loading.initializing')}</Text>
+              </View>
+            ) : (
+              <>
+                <FlatList
+                  data={photos}
+                  extraData={selectedPhotoIds}
+                  renderItem={renderPhotoItem}
+                  keyExtractor={(item) => item.id}
+                  key={screenOrientation} // Orientation changes trigger re-render
+                  numColumns={screenOrientation === 'landscape' ? 6 : 3}
+                  style={styles.photoGrid}
+                  contentContainerStyle={{ paddingBottom: 100 }} // FAB space
+                  refreshControl={
+                    <RefreshControl
+                      refreshing={refreshing}
+                      onRefresh={() => {
+                        setRefreshing(true);
+                        setEndCursor(null);
+                        setHasNextPage(true);
+                        loadPhotos();
+                      }}
+                      tintColor={primaryTextColor}
+                    />
+                  }
+                  onEndReached={() => {
+                    if (hasNextPage && !loading) {
+                      loadPhotos(true);
+                    }
                   }}
-                  tintColor="#fff"
+                  onEndReachedThreshold={0.1}
+                  ListFooterComponent={
+                    loading && hasNextPage ? (
+                      <View style={styles.loadingFooter}>
+                        <ActivityIndicator size="small" color={primaryTextColor} />
+                        <Text style={[styles.loadingText, { color: primaryTextColor }]}>{t('loading.morePhotos')}</Text>
+                      </View>
+                    ) : null
+                  }
+                  ListEmptyComponent={
+                    !loading && hasPermission === true ? (
+                      <View style={styles.emptyContainer}>
+                        <Ionicons name="images-outline" size={64} color={isLightMode ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"} />
+                        <Text style={[styles.emptyText, { color: primaryTextColor }]}>{t('NoPhotos')}</Text>
+                      </View>
+                    ) : null
+                  }
+                  removeClippedSubviews={false}
+                  initialNumToRender={10}
+                  maxToRenderPerBatch={10}
+                  windowSize={10}
                 />
-              }
-              onEndReached={() => {
-                if (hasNextPage && !loading) {
-                  loadPhotos(true);
-                }
-              }}
-              onEndReachedThreshold={0.1}
-              ListFooterComponent={
-                loading && hasNextPage ? (
-                  <View style={styles.loadingFooter}>
-                    <ActivityIndicator size="small" color="#fff" />
-                    <Text style={styles.loadingText}>{t('loading.morePhotos')}</Text>
-                  </View>
-                ) : null
-              }
-              ListEmptyComponent={
-                !loading && hasPermission === true ? (
-                  <View style={styles.emptyContainer}>
-                    <Text style={styles.emptyText}>{t('NoPhotos')}</Text>
-                  </View>
-                ) : null
-              }
-              removeClippedSubviews={false}
-              initialNumToRender={10}
-              maxToRenderPerBatch={10}
-              windowSize={10}
-            />
-          )}
+
+                {/* FAB Start Button */}
+                <TouchableOpacity
+                  style={[
+                    styles.fabButton,
+                    selectedPhotos.length === 0 && styles.disabledFab
+                  ]}
+                  onPress={startSlideshow}
+                  disabled={selectedPhotos.length === 0}
+                >
+                  <Ionicons name="play" size={24} color="#fff" />
+                  <Text style={styles.fabText}>
+                    {selectedPhotos.length > 0 
+                      ? `${t('button.startSlideshow')} (${selectedPhotos.length})`
+                      : t('button.startSlideshow')}
+                  </Text>
+                </TouchableOpacity>
+              </>
+            )}
+            
+            {/* Banner Ad - gallery/selection screen */}
+            <AdBanner />
+          </SafeAreaView>
           
-          {/* Banner Ad - gallery/selection screen */}
-          <AdBanner />
-          
+          {renderSlideshow()}
           {renderSettings()}
           {renderHelp()}
-          {renderSlideshow()}
+          {renderGlobalMenu()}
 
-        </SafeAreaView>
+        </View>
       </LinearGradient>
     </GestureHandlerRootView>
   );
 }
 
-  // 動的スタイル生成関数
-  const getStyles = (screenOrientation, clockDateSize) => StyleSheet.create({
-    container: {
-      flex: 1,
-      minHeight: '100%',
-      minWidth: '100%',
-    },
-    header: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingHorizontal: screenOrientation === 'landscape' ? 40 : 20,
-      paddingVertical: screenOrientation === 'landscape' ? 10 : 15,
-      flexWrap: 'wrap',
-    },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  headerButtons: {
-    flexDirection: 'row',
-  },
-  headerButton: {
-    marginLeft: 15,
-  },
-  headerButtonText: {
-    fontSize: 20,
-    color: '#fff',
-  },
-  controlPanel: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-  },
-  selectionText: {
-    color: '#fff',
-    fontSize: 16,
-  },
-  slideshowButton: {
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 20,
-  },
-  disabledButton: {
-    backgroundColor: '#666',
-  },
-  slideshowButtonText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  photoGrid: {
-    flex: 1,
-    paddingHorizontal: screenOrientation === 'landscape' ? 20 : 10,
-    paddingVertical: screenOrientation === 'landscape' ? 10 : 5,
-  },
-  photoItem: {
-    flex: 1,
-    margin: 2,
-    aspectRatio: 1,
-    position: 'relative',
-    minWidth: screenOrientation === 'landscape' ? 80 : 100,
-    maxWidth: screenOrientation === 'landscape' ? 120 : 150,
-  },
-  selectedPhoto: {
-    borderWidth: 3,
-    borderColor: '#007AFF',
-  },
-  photoThumbnail: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 5,
-  },
-  selectedOverlay: {
-    position: 'absolute',
-    top: 5,
-    right: 5,
-    backgroundColor: '#007AFF',
-    borderRadius: 12,
-    width: 24,
-    height: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  selectedText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    color: '#fff',
-    marginTop: 10,
-    fontSize: 16,
-  },
-  loadingFooter: {
-    padding: 20,
-    alignItems: 'center',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingTop: 100,
-  },
-  emptyText: {
-    color: '#fff',
-    fontSize: 18,
-  },
-  permissionContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 40,
-  },
-  permissionTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  permissionMessage: {
-    fontSize: 16,
-    color: '#fff',
-    textAlign: 'center',
-    marginBottom: 30,
-    lineHeight: 24,
-  },
-  retryButton: {
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 30,
-    paddingVertical: 15,
-    borderRadius: 10,
-  },
-  retryButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  // 設定画面のスタイル
-  settingsContainer: {
-    flex: 1,
-  },
-  settingsContent: {
-    flex: 1,
-  },
-  settingsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: screenOrientation === 'landscape' ? 40 : 20,
-    paddingVertical: screenOrientation === 'landscape' ? 10 : 15,
-    flexWrap: 'wrap',
-  },
-  settingsTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  closeButton: {
-    fontSize: 16,
-    color: '#007AFF',
-    fontWeight: '600',
-  },
-  settingsScroll: {
-    flex: 1,
-    paddingHorizontal: screenOrientation === 'landscape' ? 40 : 20,
-    paddingVertical: screenOrientation === 'landscape' ? 10 : 0,
-  },
-  settingSection: {
-    marginBottom: screenOrientation === 'landscape' ? 20 : 30,
-  },
-  settingLabel: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#fff',
-    marginBottom: 15,
-  },
-  languageButtons: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: screenOrientation === 'landscape' ? 'flex-start' : 'center',
-    gap: screenOrientation === 'landscape' ? 7.5 : 5,
-  },
-  languageButton: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 19,
-    paddingVertical: 10,
-    borderRadius: 20,
-    marginRight: 5,
-    marginBottom: 5,
-    transform: [{ scaleX: 0.95 }],
-  },
-  activeLanguageButton: {
-    backgroundColor: '#007AFF',
-  },
-  languageButtonText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  activeLanguageButtonText: {
-    color: '#fff',
-  },
-  colorGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  colorButton: {
-    width: ((width - 60) / 4) * 0.95,
-    height: 60,
-    margin: 2.5,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  activeColorButton: {
-    borderWidth: 3,
-    borderColor: '#007AFF',
-  },
-  colorButtonText: {
-    fontSize: 12,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  intervalButtons: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  intervalButton: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    borderRadius: 15,
-    marginRight: 10,
-    marginBottom: 10,
-  },
-  activeIntervalButton: {
-    backgroundColor: '#007AFF',
-  },
-  intervalButtonText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  activeIntervalButtonText: {
-    color: '#fff',
-  },
-  // スライドショー画面のスタイル
-  slideshowContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  slideshowTouchArea: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
-  slideshowCloseButton: {
-    position: 'absolute',
-    top: screenOrientation === 'landscape' ? 20 : 50,
-    right: screenOrientation === 'landscape' ? 30 : 20,
-    zIndex: 10,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    borderRadius: 40,
-    width: 80,
-    height: 80,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  slideshowCloseText: {
-    color: '#fff',
-    fontSize: 40,
-    fontWeight: 'bold',
-  },
-  slideshowImage: {
-    width: '100%',
-    height: '100%',
-  },
-  slideshowImagePortrait: {
-    maxWidth: '95%',
-    maxHeight: '85%',
-  },
-  slideshowImageLandscape: {
-    maxWidth: '90%',
-    maxHeight: '90%',
-  },
-  slideshowLeftArea: {
-    position: 'absolute',
-    left: 0,
-    top: screenOrientation === 'landscape' ? 60 : 100,
-    bottom: 0,
-    width: '50%',
-    zIndex: 2,
-  },
-  slideshowRightArea: {
-    position: 'absolute',
-    right: 0,
-    top: screenOrientation === 'landscape' ? 60 : 100,
-    bottom: 0,
-    width: '40%',
-    zIndex: 2,
-  },
-  slideshowIndicator: {
-    position: 'absolute',
-    bottom: screenOrientation === 'landscape' ? 20 : 50,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 15,
-    zIndex: 3,
-  },
-  slideshowIndicatorText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  slideshowHint: {
-    position: 'absolute',
-    top: 100,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    paddingVertical: 8,
-    zIndex: 3,
-  },
-  slideshowHintText: {
-    color: '#fff',
-    fontSize: 14,
-    textAlign: 'center',
-    opacity: 0.8,
-  },
-  // 時計・日付オーバーレイのスタイル
-  clockOverlay: {
-    position: 'absolute',
-    bottom: screenOrientation === 'landscape' ? 20 : 50,
-    left: 0,
-    right: 0,
-    backgroundColor: 'transparent',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 12,
-    zIndex: 5,
-    alignItems: 'center',
-  },
-  clockText: {
-    color: '#fff',
-    fontSize: (screenOrientation === 'landscape' ? 96 : 108) * (clockDateSize === 'small' ? 0.5 : clockDateSize === 'medium' ? 0.7 : 2.0),
-    fontWeight: '700',
-    letterSpacing: 1,
-    fontFamily: Platform.select({ ios: 'Menlo', android: 'monospace', web: 'monospace' }),
-    textShadowColor: 'rgba(0, 0, 0, 0.8)',
-    textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 4,
-  },
-  dateText: {
-    color: '#fff',
-    fontSize: (screenOrientation === 'landscape' ? 54 : 60) * (clockDateSize === 'small' ? 0.5 : clockDateSize === 'medium' ? 0.8 : 2.0),
-    marginTop: 2,
-    textShadowColor: 'rgba(0, 0, 0, 0.8)',
-    textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 4,
-  },
-  // 警告モーダルのスタイル
-  warningOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.8)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  warningModal: {
-    backgroundColor: '#fff',
-    margin: 20,
-    padding: 20,
-    borderRadius: 15,
-    maxWidth: 350,
-  },
-  warningTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 15,
-  },
-  warningMessage: {
-    fontSize: 16,
-    lineHeight: 24,
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  warningButton: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 12,
-    borderRadius: 10,
-  },
-  warningButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  // スライドショーエラー表示のスタイル
-  slideshowErrorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 40,
-  },
-  slideshowErrorText: {
-    color: '#fff',
-    fontSize: 18,
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  slideshowNextButton: {
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 10,
-  },
-  slideshowNextButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  // 写真情報表示のスタイル
-  photoInfo: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    paddingHorizontal: 4,
-    paddingVertical: 2,
-  },
-  photoInfoText: {
-    color: '#fff',
-    fontSize: 10,
-    textAlign: 'center',
-  },
-  });

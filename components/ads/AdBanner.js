@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Platform, InteractionManager } from 'react-native';
+import { View, Platform, InteractionManager, Text } from 'react-native';
 import Constants from 'expo-constants';
 import { ENABLE_ADS, BANNER_AD_UNIT_ID } from '../../config/adsConfig';
 
@@ -73,7 +73,11 @@ export default function AdBanner({
 
   // Web/ExpoGo preview: keep a placeholder without attempting to load native module
   if (Platform.OS === 'web' || isExpoGo) {
-    return <View style={[{ height }, style]} />;
+    return (
+      <View style={[{ height, backgroundColor: '#f0f0f0', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#ddd' }, style]}>
+        <Text style={{ color: '#888', fontSize: 12 }}>Ad Space (Expo Go / Web)</Text>
+      </View>
+    );
   }
 
   // Map our bannerSize to library constants
