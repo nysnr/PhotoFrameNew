@@ -46,7 +46,7 @@ export default function AdBanner({
       console.log('AdMob dynamic import error:', e);
     }
     return () => { mounted = false; };
-  }, []);
+  }, [isExpoGo]);
 
   useEffect(() => {
     let t;

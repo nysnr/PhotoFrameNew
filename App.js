@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import {
   StyleSheet,
   View,
@@ -33,13 +33,39 @@ import Constants from 'expo-constants';
 const { width, height } = Dimensions.get('window');
 
 // 3本線ハンバーガーメニューコンポーネント
-const HamburgerIcon = ({ color }) => (
+const HamburgerIcon = React.memo(({ color }) => (
   <View style={{ width: 24, height: 18, justifyContent: 'space-between', alignItems: 'center' }}>
     <View style={{ width: 24, height: 2, backgroundColor: color, borderRadius: 1 }} />
     <View style={{ width: 24, height: 2, backgroundColor: color, borderRadius: 1 }} />
     <View style={{ width: 24, height: 2, backgroundColor: color, borderRadius: 1 }} />
   </View>
-);
+));
+
+const PhotoItem = React.memo(({ item, isSelected, onToggle, styles }) => {
+  const handlePress = useCallback(() => onToggle(item), [onToggle, item]);
+
+  return (
+    <TouchableOpacity
+      style={[styles.photoItem, isSelected && styles.selectedPhoto]}
+      onPress={handlePress}
+      activeOpacity={0.7}
+    >
+      <Image
+        source={{ uri: item.uri }}
+        style={styles.photoThumbnail}
+        onError={(error) => {
+          console.warn('Image load error for:', item.id, error);
+        }}
+        defaultSource={require('./assets/icon.png')}
+      />
+      {isSelected && (
+        <View style={styles.selectedOverlay}>
+          <Ionicons name="checkmark-circle" size={32} color="#4CD964" />
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+});
 
 // 翻訳チEEタ
 const translations = {
@@ -449,6 +475,7 @@ export default function App() {
   const slideshowTimer = useRef(null);
   const slideshowStartTimeout = useRef(null);
   const closeButtonTimer = useRef(null);
+  const menuNavigationTimeout = useRef(null);
 
   // 時計�E日付�Eフォーマット関数
   const formatTime = () => {
@@ -481,7 +508,7 @@ export default function App() {
   const styles = getStyles(screenOrientation, clockDateSize, isLightMode);
 
   // 翻訳関数
-  const t = (key, params) => {
+  const t = useCallback((key, params) => {
     let text = translations[currentLanguage][key] || key;
     if (params) {
       Object.keys(params).forEach(param => {
@@ -489,7 +516,7 @@ export default function App() {
       });
     }
     return text;
-  };
+  }, [currentLanguage]);
 
   // 画面の向きを監視（シンプル版！E
   useEffect(() => {
@@ -532,6 +559,27 @@ export default function App() {
       setHelpSection('main');
     }
   }, [showHelp]);
+
+  useEffect(() => {
+    return () => {
+      if (slideshowTimer.current) {
+        clearInterval(slideshowTimer.current);
+        slideshowTimer.current = null;
+      }
+      if (slideshowStartTimeout.current) {
+        clearTimeout(slideshowStartTimeout.current);
+        slideshowStartTimeout.current = null;
+      }
+      if (closeButtonTimer.current) {
+        clearTimeout(closeButtonTimer.current);
+        closeButtonTimer.current = null;
+      }
+      if (menuNavigationTimeout.current) {
+        clearTimeout(menuNavigationTimeout.current);
+        menuNavigationTimeout.current = null;
+      }
+    };
+  }, []);
 
   // 権限�E確認と写真の読み込み
   useEffect(() => {
@@ -631,7 +679,7 @@ export default function App() {
   };
 
   // 写真の選抁E選択解除
-  const togglePhotoSelection = (photo) => {
+  const togglePhotoSelection = useCallback((photo) => {
     setSelectedPhotos(prev => {
       const isSelected = prev.some(p => p.id === photo.id);
       if (isSelected) {
@@ -641,19 +689,19 @@ export default function App() {
       }
     });
 
-  };
+  }, []);
 
   // 全選択・全解除
-  const handleSelectAll = () => {
+  const handleSelectAll = useCallback(() => {
     if (selectedPhotos.length === photos.length && photos.length > 0) {
       setSelectedPhotos([]);
     } else {
       setSelectedPhotos([...photos]);
     }
-  };
+  }, [photos, selectedPhotos.length]);
 
   // スライドショーの開姁E
-  const startSlideshow = async () => {
+  const startSlideshow = useCallback(async () => {
     console.log('=== SLIDESHOW FUNCTION CALLED ===');
     console.log('Function startSlideshow is being executed');
     
@@ -752,10 +800,10 @@ export default function App() {
       }
       console.log('=== SLIDESHOW START ERROR CLEANUP COMPLETED ===');
     }
-  };
+  }, [selectedPhotos, slideshowInterval, t]);
 
   // スライドショーの停止
-  const stopSlideshow = async () => {
+  const stopSlideshow = useCallback(async () => {
     try {
       console.log('Stopping slideshow...');
       
@@ -805,13 +853,13 @@ export default function App() {
       }
       setShowCloseButton(true);
     }
-  };
+  }, []);
 
   // スライドショーのタイマ�E管琁E�EstartSlideshow/stopSlideshow関数で行う
   // useEffectでのタイマ�E管琁E�E無効化（重褁E��防ぐためE��E
 
   // 終亁E�Eタンの表示/非表示制御
-  const handleSlideshowTouch = () => {
+  const handleSlideshowTouch = useCallback(() => {
     if (!showCloseButton) {
       setShowCloseButton(true);
       console.log('Close button shown on touch');
@@ -837,7 +885,7 @@ export default function App() {
         console.log('Close button auto-hidden after 5 seconds');
       }, 5000);
     }
-  };
+  }, [showCloseButton]);
 
   // 言語変更
   const changeLanguage = (lang) => {
@@ -896,31 +944,13 @@ export default function App() {
   }, []);
 
   // 写真アイチE��のレンダリング
-  const renderPhotoItem = ({ item }) => {
+  const renderPhotoItem = useCallback(({ item }) => {
     const isSelected = selectedPhotoIds.has(item.id);
     
     return (
-      <TouchableOpacity
-        style={[styles.photoItem, isSelected && styles.selectedPhoto]}
-        onPress={() => togglePhotoSelection(item)}
-        activeOpacity={0.7}
-      >
-        <Image 
-          source={{ uri: item.uri }} 
-          style={styles.photoThumbnail}
-          onError={(error) => {
-            console.warn('Image load error for:', item.id, error);
-          }}
-          defaultSource={require('./assets/icon.png')}
-        />
-        {isSelected && (
-          <View style={styles.selectedOverlay}>
-            <Ionicons name="checkmark-circle" size={32} color="#4CD964" />
-          </View>
-        )}
-      </TouchableOpacity>
+      <PhotoItem item={item} isSelected={isSelected} onToggle={togglePhotoSelection} styles={styles} />
     );
-  };
+  }, [selectedPhotoIds, styles, togglePhotoSelection]);
 
   // BackHandler制御
   useEffect(() => {
@@ -953,15 +983,18 @@ export default function App() {
   }, [showMenu, showSettings, showHelp, showSlideshow, stopSlideshow]);
 
   // ハンバーガーメニューを開く
-  const openMenu = () => {
+  const openMenu = useCallback(() => {
     setShowMenu(true);
-  };
+  }, []);
 
   // メニュー遷移ハチEEラ
-  const handleMenuNavigation = (target) => {
+  const handleMenuNavigation = useCallback((target) => {
     setShowMenu(false);
     
-    setTimeout(() => {
+    if (menuNavigationTimeout.current) {
+      clearTimeout(menuNavigationTimeout.current);
+    }
+    menuNavigationTimeout.current = setTimeout(() => {
       switch(target) {
         case 'gallery':
           setShowSettings(false);
@@ -985,7 +1018,7 @@ export default function App() {
           break;
       }
     }, 300);
-  };
+  }, [selectedPhotos.length, startSlideshow, stopSlideshow, t]);
 
   // グローバルメニューのレンダリング
   const renderGlobalMenu = () => {
